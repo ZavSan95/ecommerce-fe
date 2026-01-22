@@ -1,124 +1,147 @@
+'use client';
+
+import { useAppSelector, useAppDispatch } from '@/store/hooks';
+import { removeItem, updateQuantity } from '@/store/cart/cartSlice';
+import { redirect } from 'next/navigation';
+import { QuantitySelector, Title } from '@/components';
+import Image from 'next/image';
 import Link from 'next/link';
 
-import Image from 'next/image';
-import { redirect } from 'next/navigation';
+export default function CartPage() {
 
+  const items = useAppSelector(state => state.cart.items);
+  const dispatch = useAppDispatch();
 
-import { QuantitySelector, Title } from '@/components';
-import { initialData } from '@/seed/seed';
+  if (items.length === 0) {
+    return redirect('/empty');
+  }
 
-
-const productsInCart = [
-  initialData.products[ 0 ],
-  initialData.products[ 1 ],
-  initialData.products[ 2 ],
-];
-
-
-export default function () {
-
-
-  // redirect('/empty');
-
-
+  const totalItems = items.reduce((sum, i) => sum + i.quantity, 0);
+  const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  const total = subtotal;
 
   return (
-    <div className="flex justify-center items-center mb-72 px-10 sm:px-0">
-
+    <div className="flex justify-center px-10 sm:px-0">
       <div className="flex flex-col w-[1000px]">
 
-        <Title title='Carrito' />
-
+        <Title title="Carrito" />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-10">
 
-          {/* Carrito */ }
-          <div className="flex flex-col mt-5">
-            <span className="text-xl">Agregar más items</span>
-            <Link href="/" className="underline mb-5">
-              Continúa comprando
-            </Link>
-         
-
-
-          {/* Items */ }
-          {
-            productsInCart.map( product => (
-
-              <div key={ product.slug } className="flex mb-5">
+          {/* Items */}
+          <div className="flex flex-col gap-5 mt-5">
+            {items.map(item => (
+              <div
+                key={`${item.productId}-${item.variantSku}`}
+                className="
+                  flex gap-5
+                  bg-white
+                  rounded-xl
+                  p-4
+                  shadow-md
+                  hover:shadow-lg
+                  transition-shadow
+                "
+              >
+                {/* Imagen */}
                 <Image
-                  src={ `/products/${ product.images[ 0 ] }` }
-                  width={ 100 }
-                  height={ 100 }
-                  style={{
-                    width: '100px',
-                    height: '100px'
-                  }}
-                  alt={ product.title }
-                  className="mr-5 rounded"
+                  src={item.image ?? '/placeholder.webp'}
+                  width={120}
+                  height={120}
+                  alt={item.productName}
+                  className="rounded-lg object-cover"
                 />
 
-                <div>
-                  <p>{ product.title }</p>
-                  <p>${ product.price }</p>
-                  <QuantitySelector quantity={ 3 } />
+                {/* Info */}
+                <div className="flex flex-col flex-1 justify-between">
 
-                  <button className="underline mt-3">
-                    Remover
-                  </button>
+                  <div>
+                    <p className="font-semibold text-lg">
+                      {item.productName}
+                    </p>
+
+                    {item.attributes && (
+                      <p className="text-sm text-gray-500 mt-1">
+                        {Object.entries(item.attributes)
+                          .map(([k, v]) => `${k}: ${v}`)
+                          .join(' · ')}
+                      </p>
+                    )}
+
+                    <p className="mt-2 font-medium">
+                      ${item.price}
+                    </p>
+                  </div>
+
+                  {/* Acciones */}
+                  <div className="flex items-center justify-between mt-3">
+
+                    <QuantitySelector
+                      quantity={item.quantity}
+                      max={item.stock}
+                      onChange={(newQuantity) =>
+                        dispatch(
+                          updateQuantity({
+                            productId: item.productId,
+                            variantSku: item.variantSku,
+                            quantity: newQuantity,
+                          })
+                        )
+                      }
+                    />
+
+                    <button
+                      onClick={() =>
+                        dispatch(
+                          removeItem({
+                            productId: item.productId,
+                            variantSku: item.variantSku,
+                          })
+                        )
+                      }
+                      className="text-sm text-red-600 hover:underline"
+                    >
+                      Remover
+                    </button>
+                  </div>
                 </div>
-
               </div>
-
-
-            ) )
-          }
-           </div>
-
-
-
-
-          {/* Checkout - Resumen de orden */ }
-          <div className="bg-white rounded-xl shadow-xl p-7 h-fit">
-            <h2 className="text-2xl mb-2">Resumen de orden</h2>
-
-            <div className="grid grid-cols-2">
-
-              <span>No. Productos</span>
-              <span className="text-right">3 artículos</span>
-              
-              <span>Subtotal</span>
-              <span className="text-right">$ 100</span>
-              
-              <span>Impuestos (15%)</span>
-              <span className="text-right">$ 100</span>
-              
-              <span className="mt-5 text-2xl">Total:</span>
-              <span className="mt-5 text-2xl text-right">$ 100</span>
-
-
-            </div>
-
-            <div className="mt-5 mb-2 w-full">
-              <Link 
-                className="flex btn-primary justify-center"
-                href="/checkout/address">
-                Checkout
-              </Link>
-            </div>
-
-
+            ))}
           </div>
 
+          {/* Resumen */}
+          <div className="bg-white rounded-xl shadow-md p-6 h-fit">
+            <h2 className="text-xl font-semibold mb-4">
+              Resumen de orden
+            </h2>
 
+            <div className="grid grid-cols-2 gap-y-2 text-sm">
+              <span>Productos</span>
+              <span className="text-right">{totalItems}</span>
+
+              <span>Subtotal</span>
+              <span className="text-right">${subtotal}</span>
+
+              <span className="mt-3 font-semibold text-lg">Total</span>
+              <span className="mt-3 font-semibold text-lg text-right">
+                ${total.toFixed(2)}
+              </span>
+            </div>
+
+            <Link
+              href="/checkout"
+              className="flex justify-center items-center w-full rounded-md bg-blue-600 px-4 py-3 text-white font-semibold hover:bg-blue-700 transition"
+            >
+              Checkout
+            </Link>
+
+            <p className="text-xs text-gray-500 mt-4 text-center">
+              Los impuestos y costos de envío se calculan en el checkout
+            </p>
+          </div>
 
         </div>
-
-
-
       </div>
-
-
     </div>
   );
 }

@@ -12,7 +12,7 @@ export const ProductGrid = ( { products }: Props ) => {
       {
         products.map( product => (
           <ProductGridItem
-            key={ product.slug }
+            key={ product.variants[0].sku }
             product={ product }
           />
         ) )

@@ -11,6 +11,7 @@ import 'swiper/css/free-mode';
 import 'swiper/css/pagination';
 
 import './slideshow.css';
+import { getProductImageUrl } from '@/utils/assets';
 
 
 
@@ -22,43 +23,28 @@ interface Props {
 
 
 
-export const ProductMobileSlideshow = ( { images, title, className }: Props ) => {
-
-
+export const ProductMobileSlideshow = ({ images, title, className }: Props) => {
   return (
-    <div className={ className }>
-
+    <div className={className}>
       <Swiper
-        style={{
-          width: '100vw',
-          height: '500px'
-        }}
+        style={{ width: '100vw', height: '500px' }}
         pagination
-        autoplay={{
-          delay: 2500
-        }}
-        modules={ [ FreeMode, Autoplay, Pagination ] }
+        autoplay={{ delay: 2500 }}
+        modules={[FreeMode, Autoplay, Pagination]}
         className="mySwiper2"
       >
-
-        {
-          images.map( image => (
-            <SwiperSlide key={ image }>
-              <Image
-                width={ 600 }
-                height={ 500 }
-                src={ `/products/${ image }` }
-                alt={ title }
-                className="object-fill"
-              />
-            </SwiperSlide>
-
-          ) )
-        }
+        {images.map(image => (
+          <SwiperSlide key={image}>
+            <Image
+              width={600}
+              height={500}
+              src={getProductImageUrl(image)}
+              alt={title}
+              className="object-fill"
+            />
+          </SwiperSlide>
+        ))}
       </Swiper>
-
-
-
     </div>
   );
 };

@@ -5,25 +5,11 @@ import Link from 'next/link';
 import { IoSearchOutline, IoCartOutline } from 'react-icons/io5';
 
 import { titleFont } from '@/config/fonts';
-import { useAppDispatch } from '@/store/hooks';
-import { openSideMenu } from '@/store/ui/uiSlice';
+import { useAppDispatch, useAppSelector } from '@/store/hooks';
+import { openCart, openSideMenu } from '@/store/ui/uiSlice';
 import { Category } from '@/interfaces/categories.interface';
-
-async function getCategories(): Promise<Category[]> {
-  try {
-    const res = await fetch('http://localhost:3000/api/categories', {
-      cache: 'no-store',
-    });
-
-    if (!res.ok) return [];
-
-    const data = await res.json();
-    return Array.isArray(data) ? data : [];
-
-  } catch {
-    return [];
-  }
-}
+import { fetchCategories } from '@/services/categories.service';
+import { selectCartTotalItems } from '@/store/cart/cart.selectors';
 
 
 export const TopMenu = () => {
@@ -31,8 +17,10 @@ export const TopMenu = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const dispatch = useAppDispatch();
 
+  const totalItems = useAppSelector(selectCartTotalItems);
+
   useEffect(() => {
-    getCategories().then(setCategories);
+    fetchCategories().then(setCategories);
   }, []);
 
   return (
@@ -42,7 +30,7 @@ export const TopMenu = () => {
       <div>
         <Link href="/">
           <span className={`${titleFont.className} font-bold`}>
-            Teslo
+            Ecommerce
           </span>
           <span> | Shop</span>
         </Link>
@@ -70,15 +58,19 @@ export const TopMenu = () => {
         <Link href="/search" className="mx-2">
           <IoSearchOutline className="w-5 h-5" />
         </Link>
-
-        <Link href="/cart" className="mx-2">
-          <div className="relative">
-            <span className="absolute text-xs px-1 rounded-full font-bold -top-2 -right-2 bg-blue-700 text-white">
-              3
+        
+        <button
+          onClick={() => dispatch(openCart())}
+          className="mx-2 relative"
+        >
+          {totalItems > 0 && (
+            <span className="absolute -top-2 -right-2 text-xs bg-blue-700 text-white rounded-full px-1">
+              {totalItems}
             </span>
-            <IoCartOutline className="w-5 h-5" />
-          </div>
-        </Link>
+          )}
+          <IoCartOutline className="w-5 h-5" />
+        </button>
+
 
         <button
           onClick={() => dispatch(openSideMenu())}

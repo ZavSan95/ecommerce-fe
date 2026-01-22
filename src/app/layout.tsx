@@ -5,7 +5,7 @@ import './globals.css';
 import { ReduxProvider } from '@/store/Provider';
 
 export const metadata: Metadata = {
-  title: 'Teslo | Shop',
+  title: 'Ecommerce | Shop',
   description: 'Una tienda virtual de productos',
 };
 

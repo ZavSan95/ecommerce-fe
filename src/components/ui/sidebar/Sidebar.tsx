@@ -2,144 +2,154 @@
 
 import Link from 'next/link';
 import clsx from 'clsx';
-import { IoCloseOutline, IoLogInOutline, IoLogOutOutline, IoPeopleOutline, IoPersonOutline, IoSearchOutline, IoShirtOutline, IoTicketOutline } from 'react-icons/io5';
-import uiSlice, { closeSideMenu } from '@/store/ui/uiSlice';
+import {
+  IoCloseOutline,
+  IoLogInOutline,
+  IoLogOutOutline,
+  IoPeopleOutline,
+  IoPersonOutline,
+  IoSearchOutline,
+  IoShirtOutline,
+  IoTicketOutline,
+} from 'react-icons/io5';
+
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-
-
-
+import { closeSideMenu } from '@/store/ui/uiSlice';
+import { fetchCategories } from '@/services/categories.service';
+import { useEffect, useState } from 'react';
+import { Category } from '@/interfaces/categories.interface';
 
 export const Sidebar = () => {
-
   const dispatch = useAppDispatch();
-  const isSideMenuOpen = useAppSelector(
-    (state) => state.ui.isSideMenuOpen
-  );
+  const isSideMenuOpen = useAppSelector(state => state.ui.isSideMenuOpen);
 
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    fetchCategories().then(setCategories);
+  }, []);
 
   return (
-    <div>
-
-      {/* Background black */ }
-      {
-        isSideMenuOpen && (
-          <div
-            className="fixed top-0 left-0 w-screen h-screen z-10 bg-black opacity-30"
-          />
-
-        )
-      }
-
-
-      {/* Blur */ }
-      {
-        isSideMenuOpen && (
-          <div
-            onClick={ () => dispatch(closeSideMenu()) }
-            className="fade-in fixed top-0 left-0 w-screen h-screen z-10 backdrop-filter backdrop-blur-sm"
-          />
-
-        )
-      }
-
-      {/* Sidemenu */ }
-      <nav
-        className={
-          clsx(
-            "fixed p-5 right-0 top-0 w-[500px] h-screen bg-white z-20 shadow-2xl transform transition-all duration-300",
-            {
-              "translate-x-full": !isSideMenuOpen
-            }
-          )
-        }>
-
-
-        <IoCloseOutline
-          size={ 50 }
-          className="absolute top-5 right-5 cursor-pointer"
-          onClick={ () => dispatch(closeSideMenu()) }
+    <>
+      {/* Overlay / click outside */}
+      {isSideMenuOpen && (
+        <div
+          onClick={() => dispatch(closeSideMenu())}
+          className="fixed inset-0 z-10 bg-black/40 backdrop-blur-sm"
         />
+      )}
 
+      {/* Sidebar */}
+      <nav
+        className={clsx(
+          `
+          fixed top-0 right-0 z-20 h-screen
+          w-[85%] sm:w-[400px]
+          bg-white shadow-2xl
+          transform transition-transform duration-300 ease-in-out
+          p-5
+          `,
+          {
+            'translate-x-0': isSideMenuOpen,
+            'translate-x-full': !isSideMenuOpen,
+          }
+        )}
+      >
+        {/* Close (X) */}
+        <button
+          aria-label="Cerrar menú"
+          onClick={() => dispatch(closeSideMenu())}
+          className="absolute top-4 right-4 rounded-full p-1 hover:bg-gray-100 transition"
+        >
+          <IoCloseOutline size={36} />
+        </button>
 
-        {/* Input */ }
+        {/* Search */}
         <div className="relative mt-14">
-          <IoSearchOutline size={ 20 } className="absolute top-2 left-2" />
+          <IoSearchOutline size={20} className="absolute top-3 left-3 text-gray-500" />
           <input
             type="text"
-            placeholder="Buscar"
-            className="w-full bg-gray-50 rounded pl-10 py-1 pr-10 border-b-2 text-xl border-gray-200 focus:outline-none focus:border-blue-500"
+            placeholder="Buscar productos"
+            className="w-full bg-gray-50 rounded-lg pl-10 py-2 pr-3 text-base border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
 
-        {/* Menú */ }
+        {/* Categorías (solo mobile) */}
+        <div className="sm:hidden mt-8">
+          <h3 className="text-lg font-semibold mb-3">Categorías</h3>
 
+          {categories.map(category => (
+            <Link
+              key={category._id}
+              href={`/category/${category.slug}`}
+              onClick={() => dispatch(closeSideMenu())}
+              className="block py-2 px-2 rounded hover:bg-gray-100 capitalize"
+            >
+              {category.name}
+            </Link>
+          ))}
+
+          <div className="w-full h-px bg-gray-200 my-6" />
+        </div>
+
+        {/* User menu */}
         <Link
-          href="/"
-          className="flex items-center mt-10 p-2 hover:bg-gray-100 rounded transition-all"
+          href="/profile"
+          onClick={() => dispatch(closeSideMenu())}
+          className="flex items-center gap-3 p-2 rounded hover:bg-gray-100"
         >
-          <IoPersonOutline size={ 30 } />
-          <span className="ml-3 text-xl">Perfil</span>
+          <IoPersonOutline size={22} />
+          <span className="text-lg">Perfil</span>
         </Link>
 
         <Link
-          href="/"
-          className="flex items-center mt-10 p-2 hover:bg-gray-100 rounded transition-all"
+          href="/orders"
+          onClick={() => dispatch(closeSideMenu())}
+          className="flex items-center gap-3 p-2 rounded hover:bg-gray-100"
         >
-          <IoTicketOutline size={ 30 } />
-          <span className="ml-3 text-xl">Ordenes</span>
+          <IoTicketOutline size={22} />
+          <span className="text-lg">Órdenes</span>
         </Link>
 
         <Link
-          href="/"
-          className="flex items-center mt-10 p-2 hover:bg-gray-100 rounded transition-all"
+          href="/login"
+          onClick={() => dispatch(closeSideMenu())}
+          className="flex items-center gap-3 p-2 rounded hover:bg-gray-100"
         >
-          <IoLogInOutline size={ 30 } />
-          <span className="ml-3 text-xl">Ingresar</span>
+          <IoLogInOutline size={22} />
+          <span className="text-lg">Ingresar</span>
         </Link>
 
         <Link
-          href="/"
-          className="flex items-center mt-10 p-2 hover:bg-gray-100 rounded transition-all"
+          href="/logout"
+          onClick={() => dispatch(closeSideMenu())}
+          className="flex items-center gap-3 p-2 rounded hover:bg-gray-100"
         >
-          <IoLogOutOutline size={ 30 } />
-          <span className="ml-3 text-xl">Salir</span>
+          <IoLogOutOutline size={22} />
+          <span className="text-lg">Salir</span>
         </Link>
 
-        {/* Line Separator */ }
-        <div className="w-full h-px bg-gray-200 my-10" />
-
-
-        <Link
-          href="/"
-          className="flex items-center mt-10 p-2 hover:bg-gray-100 rounded transition-all"
-        >
-          <IoShirtOutline size={ 30 } />
-          <span className="ml-3 text-xl">Productos</span>
-        </Link>
+        {/* Admin */}
+        <div className="w-full h-px bg-gray-200 my-6" />
 
         <Link
-          href="/"
-          className="flex items-center mt-10 p-2 hover:bg-gray-100 rounded transition-all"
+          href="/admin/products"
+          onClick={() => dispatch(closeSideMenu())}
+          className="flex items-center gap-3 p-2 rounded hover:bg-gray-100"
         >
-          <IoTicketOutline size={ 30 } />
-          <span className="ml-3 text-xl">Ordenes</span>
+          <IoShirtOutline size={22} />
+          <span className="text-lg">Productos</span>
         </Link>
 
         <Link
-          href="/"
-          className="flex items-center mt-10 p-2 hover:bg-gray-100 rounded transition-all"
+          href="/admin/users"
+          onClick={() => dispatch(closeSideMenu())}
+          className="flex items-center gap-3 p-2 rounded hover:bg-gray-100"
         >
-          <IoPeopleOutline size={ 30 } />
-          <span className="ml-3 text-xl">Usuarios</span>
+          <IoPeopleOutline size={22} />
+          <span className="text-lg">Usuarios</span>
         </Link>
-
-
       </nav>
-
-
-
-
-
-    </div>
+    </>
   );
 };

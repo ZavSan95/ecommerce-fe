@@ -11,35 +11,43 @@ interface Props {
 }
 
 export const ProductGridItem = ({ product }: Props) => {
+
   const defaultVariant =
     product.variants.find(v => v.isDefault) ?? product.variants[0];
 
-  const images = defaultVariant.images;
-  const [displayImage, setDisplayImage] = useState(images[0]);
-  const [hasError, setHasError] = useState(false);
+  const images = defaultVariant.images ?? [];
 
-  const imageSrc = hasError ? '/placeholder.webp' : getProductImageUrl(displayImage);
+  const primaryImage = images[0]
+    ? getProductImageUrl(images[0])
+    : '/placeholder.webp';
+
+  const secondaryImage = images[1]
+    ? getProductImageUrl(images[1])
+    : null;
+
+  const [displayImage, setDisplayImage] = useState(primaryImage);
 
   return (
     <div className="rounded-md overflow-hidden fade-in">
-      <Link href={`/product/${product.slug}`}>
+      <Link href={`/product/${defaultVariant.sku}`}>
         <Image
-          src={imageSrc}
+          src={displayImage}
           alt={product.name}
           width={500}
           height={500}
           className="w-full h-auto object-cover rounded"
-          onError={() => setHasError(true)}
-          onMouseEnter={() => images[1] && setDisplayImage(images[1])}
-          onMouseLeave={() => setDisplayImage(images[0])}
-          priority={false}
+          onError={(e) => {
+            (e.currentTarget as any).src = '/placeholder.webp';
+          }}
+          onMouseEnter={() => secondaryImage && setDisplayImage(secondaryImage)}
+          onMouseLeave={() => setDisplayImage(primaryImage)}
         />
       </Link>
 
       <div className="p-4 flex flex-col">
         <Link
+          href={`/product/${defaultVariant.sku}`}
           className="hover:text-blue-600"
-          href={`/product/${product.slug}`}
         >
           {product.name}
         </Link>
