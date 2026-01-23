@@ -13,7 +13,7 @@ export default function CheckoutPage() {
 
   const items = useAppSelector(state => state.cart.items);
   const { isAuthenticated, isChecking } = useAuthGuard('/checkout', 600);
-
+  
   if (isChecking) {
     return <Spinner label="Verificando sesión..." />;
   }

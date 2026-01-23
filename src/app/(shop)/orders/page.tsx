@@ -1,77 +1,45 @@
-// https://tailwindcomponents.com/component/hoverable-table
+'use client';
+
+import { useEffect, useState } from 'react';
 import { Title } from '@/components';
+import { OrdersGrid } from '@/components/orders/OrdersGrid';
+import { getMyOrders } from '@/services/orders.service';
+import { Spinner } from '@/components/ui/spiner/Spiner';
+import { useAuthGuard } from '@/hooks/useAuthGuard';
+import { Order } from '@/interfaces/orders.interface';
 
-import Link from 'next/link';
-import { IoCardOutline } from 'react-icons/io5';
+export default function OrdersPage() {
 
-export default function() {
+  const { isAuthenticated, isChecking } = useAuthGuard('/orders', 600);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    getMyOrders()
+      .then(data => {
+        setOrders(data);
+      })
+      .finally(() => {
+        setLoading(false);
+      });
+  }, [isAuthenticated]);
+
+  if (isChecking || loading) {
+    return <Spinner label="Cargando órdenes..." />;
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
+  
+  console.log(orders);
+
   return (
     <>
-      <Title title="Orders" />
-
-      <div className="mb-10">
-        <table className="min-w-full">
-          <thead className="bg-gray-200 border-b">
-            <tr>
-              <th scope="col" className="text-sm font-medium text-gray-900 px-6 py-4 text-left">
-                #ID
-              </th>
-              <th scope="col" className="text-sm font-medium text-gray-900 px-6 py-4 text-left">
-                Nombre completo
-              </th>
-              <th scope="col" className="text-sm font-medium text-gray-900 px-6 py-4 text-left">
-                Estado
-              </th>
-              <th scope="col" className="text-sm font-medium text-gray-900 px-6 py-4 text-left">
-                Opciones
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-
-            <tr className="bg-white border-b transition duration-300 ease-in-out hover:bg-gray-100">
-
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">1</td>
-              <td className="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">
-                Mark
-              </td>
-              <td className="flex items-center text-sm  text-gray-900 font-light px-6 py-4 whitespace-nowrap">
-
-                <IoCardOutline className="text-green-800" />
-                <span className='mx-2 text-green-800'>Pagada</span>
-
-              </td>
-              <td className="text-sm text-gray-900 font-light px-6 ">
-                <Link href="/orders/123" className="hover:underline">
-                  Ver orden
-                </Link>
-              </td>
-
-            </tr>
-
-            <tr className="bg-white border-b transition duration-300 ease-in-out hover:bg-gray-100">
-
-              <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">1</td>
-              <td className="text-sm text-gray-900 font-light px-6 py-4 whitespace-nowrap">
-                Mark
-              </td>
-              <td className="flex items-center text-sm  text-gray-900 font-light px-6 py-4 whitespace-nowrap">
-
-                <IoCardOutline className="text-red-800" />
-                <span className='mx-2 text-red-800'>No Pagada</span>
-
-              </td>
-              <td className="text-sm text-gray-900 font-light px-6 ">
-                <Link href="/orders/123" className="hover:underline">
-                  Ver orden
-                </Link>
-              </td>
-
-            </tr>
-
-          </tbody>
-        </table>
-      </div>
+      <Title title="Órdenes" />
+      <OrdersGrid orders={orders} />
     </>
   );
 }

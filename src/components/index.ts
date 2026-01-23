@@ -6,7 +6,7 @@ export * from './products/product-grid/ProductGrid';
 export * from './products/product-grid/ProductGridItem';
 export * from './products/empty-products/EmptyProducts';
 
-
+export * from './profile/ProfileCard';
 
 export * from './ui/footer/Footer';
 
