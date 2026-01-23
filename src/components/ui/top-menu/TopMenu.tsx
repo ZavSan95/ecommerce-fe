@@ -11,12 +11,10 @@ import { Category } from '@/interfaces/categories.interface';
 import { fetchCategories } from '@/services/categories.service';
 import { selectCartTotalItems } from '@/store/cart/cart.selectors';
 
-
 export const TopMenu = () => {
 
   const [categories, setCategories] = useState<Category[]>([]);
   const dispatch = useAppDispatch();
-
   const totalItems = useAppSelector(selectCartTotalItems);
 
   useEffect(() => {
@@ -53,12 +51,12 @@ export const TopMenu = () => {
         )}
       </div>
 
-      {/* Search, Cart, Menu */}
+      {/* Actions */}
       <div className="flex items-center">
         <Link href="/search" className="mx-2">
           <IoSearchOutline className="w-5 h-5" />
         </Link>
-        
+
         <button
           onClick={() => dispatch(openCart())}
           className="mx-2 relative"
@@ -70,7 +68,6 @@ export const TopMenu = () => {
           )}
           <IoCartOutline className="w-5 h-5" />
         </button>
-
 
         <button
           onClick={() => dispatch(openSideMenu())}

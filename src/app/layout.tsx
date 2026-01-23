@@ -3,6 +3,8 @@ import { inter } from '@/config/fonts';
 import './globals.css';
 
 import { ReduxProvider } from '@/store/Provider';
+import { AuthBootstrap } from '@/components/auth/AuthBootstrap';
+import { Toaster } from 'react-hot-toast';
 
 export const metadata: Metadata = {
   title: 'Ecommerce | Shop',
@@ -18,7 +20,10 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <ReduxProvider>
-          {children}
+          <AuthBootstrap>
+            <Toaster position="top-left" />
+            {children}
+          </AuthBootstrap>
         </ReduxProvider>
       </body>
     </html>

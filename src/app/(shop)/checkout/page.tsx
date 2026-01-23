@@ -5,9 +5,24 @@ import Link from 'next/link';
 import { useAppSelector } from '@/store/hooks';
 import { Title } from '@/components';
 import { redirect } from 'next/navigation';
+import { Spinner } from '@/components/ui/spiner/Spiner';
+import { useAuthGuard } from '@/hooks/useAuthGuard';
+
 
 export default function CheckoutPage() {
+
   const items = useAppSelector(state => state.cart.items);
+  const { isAuthenticated, isChecking } = useAuthGuard('/checkout', 600);
+
+  if (isChecking) {
+    return <Spinner label="Verificando sesión..." />;
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
+
+  
 
   if (items.length === 0) {
     redirect('/empty');

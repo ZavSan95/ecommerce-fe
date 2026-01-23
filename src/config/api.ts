@@ -7,4 +7,7 @@ export const endpoints = {
     `${API_URL}/catalog/products/category/${slug}`,
   productBySlug: (slug: string) => 
     `${API_URL}/catalog/products/slug/${slug}`,
+  login: `${API_URL}/auth/login`,
+  me: `${API_URL}/auth/me`,
+  logout: `${API_URL}/auth/logout`
 };
