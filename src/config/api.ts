@@ -12,5 +12,7 @@ export const endpoints = {
   logout: `${API_URL}/auth/logout`,
 
   my_orders: () => `${API_URL}/orders/my`,
+  orderById: (id: string) => `${API_URL}/orders/order/${id}`,
+  orders_checkout: () => `${API_URL}/orders/checkout`,
 
 };

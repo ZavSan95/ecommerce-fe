@@ -8,8 +8,8 @@ import { Spinner } from '@/components/ui/spiner/Spiner';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { setPaymentMethod } from '@/store/checkout/checkoutSlice';
+import { PaymentProvider } from '@/enum/payments-providers';
 
-type PaymentMethod = 'mercadopago' | 'transferencia';
 
 export default function PaymentPage() {
 
@@ -21,7 +21,7 @@ export default function PaymentPage() {
     state => state.checkout.paymentMethod
   );
 
-  const [selected, setSelected] = useState<PaymentMethod | null>(currentMethod);
+  const [selected, setSelected] = useState<PaymentProvider | null>(currentMethod);
 
   useEffect(() => {
     if (currentMethod) {
@@ -65,10 +65,10 @@ export default function PaymentPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 mt-6">
 
           {/* MercadoPago */}
-          <div
-            onClick={() => setSelected('mercadopago')}
-            className={optionClass(selected === 'mercadopago')}
-          >
+            <div
+              onClick={() => setSelected(PaymentProvider.MERCADOPAGO)}
+              className={optionClass(selected === PaymentProvider.MERCADOPAGO)}
+            >
             <h3 className="text-lg font-semibold mb-1">
               MercadoPago
             </h3>
@@ -78,10 +78,10 @@ export default function PaymentPage() {
           </div>
 
           {/* Transferencia */}
-          <div
-            onClick={() => setSelected('transferencia')}
-            className={optionClass(selected === 'transferencia')}
-          >
+            <div
+              onClick={() => setSelected(PaymentProvider.TRANSFERENCIA)}
+              className={optionClass(selected === PaymentProvider.TRANSFERENCIA)}
+            >
             <h3 className="text-lg font-semibold mb-1">
               Transferencia bancaria
             </h3>

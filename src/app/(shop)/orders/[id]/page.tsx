@@ -1,17 +1,10 @@
-import Link from 'next/link';
-
-import { Title } from '@/components';
-import { initialData } from '@/seed/seed';
-import Image from 'next/image';
+import { notFound } from 'next/navigation';
 import clsx from 'clsx';
 import { IoCardOutline } from 'react-icons/io5';
 
-
-const productsInCart = [
-  initialData.products[ 0 ],
-  initialData.products[ 1 ],
-  initialData.products[ 2 ],
-];
+import { Title } from '@/components';
+import { OrderDetail } from '@/interfaces/order-detail';
+import { getOrderById } from '@/services/orders.server';
 
 
 interface Props {
@@ -20,145 +13,143 @@ interface Props {
   };
 }
 
+export default async function OrderPage({ params }: Props) {
 
-export default function ( { params }: Props ) {
+  const order: OrderDetail | null = await getOrderById(params.id);
 
-  const { id } = params;
+  if (!order) {
+    notFound();
+  }
 
-  // Todo: verificar
-  // redirect(/)
+  const payment = order.payments?.[0];
+  const isPaid =
+    order.status === 'paid' || payment?.status === 'paid';
 
-
+  const totalItems = order.items.reduce(
+    (acc, item) => acc + item.quantity,
+    0
+  );
 
   return (
-    <div className="flex justify-center items-center mb-72 px-10 sm:px-0">
-
+    <div className="flex justify-center mb-72 px-10 sm:px-0">
       <div className="flex flex-col w-[1000px]">
 
-        <Title title={ `Orden #${ id }` } />
-
+        <Title title={`Orden #${order.orderNumber}`} />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-10">
 
-          {/* Carrito */ }
+          {/* ================== ITEMS ================== */}
           <div className="flex flex-col mt-5">
 
-            <div className={
-              clsx(
-                "flex items-center rounded-lg py-2 px-3.5 text-xs font-bold text-white mb-5",
+            <div
+              className={clsx(
+                'flex items-center rounded-lg py-2 px-3.5 text-xs font-bold text-white mb-5',
                 {
-                  'bg-red-500': false,
-                  'bg-green-700': true,
+                  'bg-green-700': isPaid,
+                  'bg-red-500': !isPaid,
                 }
-              )
-            }>
-              <IoCardOutline size={ 30 } />
-              {/* <span className="mx-2">Pendiente de pago</span> */ }
-              <span className="mx-2">Pagada</span>
+              )}
+            >
+              <IoCardOutline size={30} />
+              <span className="mx-2">
+                {isPaid ? 'Pagada' : 'Pendiente de pago'}
+              </span>
             </div>
 
+            {order.items.map(item => (
+              <div key={item.id} className="flex mb-5">
 
-
-            {/* Items */ }
-            {
-              productsInCart.map( product => (
-
-                <div key={ product.slug } className="flex mb-5">
-                  <Image
-                    src={ `/products/${ product.images[ 0 ] }` }
-                    width={ 100 }
-                    height={ 100 }
-                    style={ {
-                      width: '100px',
-                      height: '100px'
-                    } }
-                    alt={ product.title }
-                    className="mr-5 rounded"
-                  />
-
-                  <div>
-                    <p>{ product.title }</p>
-                    <p>${ product.price } x 3</p>
-                    <p className="font-bold">Subtotal: ${ product.price * 3 }</p>
-                  </div>
-
+                {/* Placeholder imagen */}
+                <div className="w-[100px] h-[100px] bg-gray-200 rounded mr-5 flex items-center justify-center text-xs text-gray-500">
+                  Sin imagen
                 </div>
 
+                <div>
+                  <p className="font-medium">{item.productName}</p>
 
-              ) )
-            }
+                  {item.variantName && (
+                    <p className="text-sm text-gray-500">
+                      {item.variantName}
+                    </p>
+                  )}
+
+                  <p>
+                    ${item.unitPrice} x {item.quantity}
+                  </p>
+
+                  <p className="font-bold">
+                    Subtotal: ${item.totalPrice}
+                  </p>
+                </div>
+
+              </div>
+            ))}
+
           </div>
 
-
-
-
-          {/* Checkout - Resumen de orden */ }
+          {/* ================== RESUMEN ================== */}
           <div className="bg-white rounded-xl shadow-xl p-7">
 
-            <h2 className="text-2xl mb-2">Dirección de entrega</h2>
-            <div className="mb-10">
-              <p className="text-xl">Fernando Herrera</p>
-              <p>Av. Siempre viva 123</p>
-              <p>Col. Centro</p>
-              <p>Alcaldía Cuauhtémoc</p>
-              <p>Ciudad de México</p>
-              <p>CP 123123</p>
-              <p>123.123.123</p>
-            </div>
+            <h2 className="text-2xl mb-4">Resumen de orden</h2>
 
-            {/* Divider */ }
-            <div className="w-full h-0.5 rounded bg-gray-200 mb-10" />
+            <div className="grid grid-cols-2 gap-y-1 text-sm">
 
-
-            <h2 className="text-2xl mb-2">Resumen de orden</h2>
-
-            <div className="grid grid-cols-2">
-
-              <span>No. Productos</span>
-              <span className="text-right">3 artículos</span>
+              <span>Productos</span>
+              <span className="text-right">
+                {totalItems}
+              </span>
 
               <span>Subtotal</span>
-              <span className="text-right">$ 100</span>
+              <span className="text-right">
+                ${order.subtotalAmount}
+              </span>
 
-              <span>Impuestos (15%)</span>
-              <span className="text-right">$ 100</span>
+              <span>Descuento</span>
+              <span className="text-right">
+                ${order.discountAmount}
+              </span>
 
-              <span className="mt-5 text-2xl">Total:</span>
-              <span className="mt-5 text-2xl text-right">$ 100</span>
+              <span>Impuestos</span>
+              <span className="text-right">
+                ${order.taxAmount}
+              </span>
 
+              <span>Envío</span>
+              <span className="text-right">
+                ${order.shippingAmount}
+              </span>
+
+              <span className="mt-4 text-2xl font-bold">
+                Total
+              </span>
+              <span className="mt-4 text-2xl text-right font-bold">
+                ${order.totalAmount}
+              </span>
 
             </div>
 
-            <div className="mt-5 mb-2 w-full">
-
-              <div className={
-                clsx(
-                  "flex items-center rounded-lg py-2 px-3.5 text-xs font-bold text-white mb-5",
+            <div className="mt-6">
+              <div
+                className={clsx(
+                  'flex items-center rounded-lg py-2 px-3.5 text-xs font-bold text-white',
                   {
-                    'bg-red-500': false,
-                    'bg-green-700': true,
+                    'bg-green-700': isPaid,
+                    'bg-red-500': !isPaid,
                   }
-                )
-              }>
-                <IoCardOutline size={ 30 } />
-                {/* <span className="mx-2">Pendiente de pago</span> */ }
-                <span className="mx-2">Pagada</span>
+                )}
+              >
+                <IoCardOutline size={30} />
+                <span className="mx-2">
+                  {isPaid ? 'Pago confirmado' : 'Pendiente de pago'}
+                </span>
               </div>
-
             </div>
-
 
           </div>
-
-
 
         </div>
 
-
-
       </div>
-
-
     </div>
   );
 }

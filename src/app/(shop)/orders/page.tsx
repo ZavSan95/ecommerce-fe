@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Title } from '@/components';
 import { OrdersGrid } from '@/components/orders/OrdersGrid';
-import { getMyOrders } from '@/services/orders.service';
+import { getMyOrders } from '@/services/orders.client';
 import { Spinner } from '@/components/ui/spiner/Spiner';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { Order } from '@/interfaces/orders.interface';

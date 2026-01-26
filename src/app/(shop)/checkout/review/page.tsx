@@ -2,59 +2,110 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { redirect } from 'next/navigation';
+import { redirect, useRouter } from 'next/navigation';
+import { useMemo, useState } from 'react';
+import toast from 'react-hot-toast';
 
 import { Title } from '@/components';
 import { Spinner } from '@/components/ui/spiner/Spiner';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
-import { useAppSelector } from '@/store/hooks';
+import { useAppSelector, useAppDispatch } from '@/store/hooks';
+import { createOrder } from '@/services/orders.client';
+import { clearCart } from '@/store/cart/cartSlice';
+import { PaymentProvider } from '@/enum/payments-providers';
 
 export default function ReviewPage() {
+  const router = useRouter();
+  const dispatch = useAppDispatch();
 
   const { isAuthenticated, isChecking } = useAuthGuard('/checkout/review', 600);
 
   const cartItems = useAppSelector(state => state.cart.items);
   const address = useAppSelector(state => state.checkout.address);
   const paymentMethod = useAppSelector(state => state.checkout.paymentMethod);
+  const user = useAppSelector(state => state.auth.user);
 
-  if (isChecking) {
-    return <Spinner label="Verificando información..." />;
-  }
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  if (!isAuthenticated) {
-    return null;
-  }
-
-  if (cartItems.length === 0) {
-    redirect('/empty');
-  }
-
-  if (!address) {
-    redirect('/checkout/address');
-  }
-
-  if (!paymentMethod) {
-    redirect('/checkout/payment');
-  }
-
-  const subtotal = cartItems.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0
+  // ✅ HOOK SIEMPRE ARRIBA (antes de returns / redirects)
+  const subtotal = useMemo(
+    () => cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0),
+    [cartItems]
   );
+
+  // ⛔ Recién después lógica condicional
+  if (isChecking) return <Spinner label="Verificando información..." />;
+  if (!isAuthenticated) return null;
+
+  if (cartItems.length === 0) redirect('/empty');
+  if (!address) redirect('/checkout/address');
+  if (!paymentMethod) redirect('/checkout/payment');
+
+  const onConfirm = async () => {
+    try {
+      setIsSubmitting(true);
+
+      const payload = {
+
+        customerId: user!.id,
+        customerEmail: user!.email,
+        customerName: user!.name,
+
+        items: cartItems.map(i => ({
+          productId: i.productId,
+          sku: i.variantSku,
+          quantity: i.quantity,
+        })),
+        billingAddress: {
+          fullName: `${address.firstName} ${address.lastName}`,
+          phone: address.phone,
+          street: address.address,
+          number: address.address2 || '0',
+          city: address.city,
+          state: address.state ?? 'Santa Fe',
+          postalCode: address.postalCode,
+          country: address.country,
+        },
+        shippingAddress: {
+          fullName: `${address.firstName} ${address.lastName}`,
+          phone: address.phone,
+          street: address.address,
+          number: address.address2 || '0',
+          city: address.city,
+          state: address.state ?? 'Santa Fe',
+          postalCode: address.postalCode,
+          country: address.country,
+        },
+        paymentProvider: paymentMethod,
+      } as const;
+
+      const resp = await createOrder(payload);
+      console.log(resp);
+
+      if (!resp.payment.checkoutUrl) {
+        throw new Error('No se recibió checkoutUrl para redirigir al pago');
+      }
+
+      dispatch(clearCart());
+
+      window.location.href = resp.payment.checkoutUrl;
+    } catch (e: any) {
+      console.error('ERROR BACKEND:', e);
+      console.error('ERROR RESPONSE:', e?.response);
+      toast.error(e?.message ?? 'Error al crear la orden');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <div className="flex justify-center px-10 sm:px-0 mb-40">
       <div className="w-full xl:w-[1000px] flex flex-col">
-
         <Title title="Revisar orden" subtitle="Confirmá antes de pagar" />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-10">
-
-          {/* ===================== */}
           {/* PRODUCTOS */}
-          {/* ===================== */}
           <div className="flex flex-col gap-4">
-
             <h3 className="text-xl font-semibold">Productos</h3>
 
             {cartItems.map(item => (
@@ -93,14 +144,10 @@ export default function ReviewPage() {
             ))}
           </div>
 
-          {/* ===================== */}
           {/* RESUMEN */}
-          {/* ===================== */}
           <div className="bg-white rounded-xl shadow-xl p-7 h-fit">
-
             <h3 className="text-xl font-semibold mb-4">Resumen</h3>
 
-            {/* Dirección */}
             <div className="mb-4">
               <p className="font-medium">Dirección de envío</p>
               <p className="text-sm text-gray-600">
@@ -125,7 +172,6 @@ export default function ReviewPage() {
               </Link>
             </div>
 
-            {/* Pago */}
             <div className="mb-4">
               <p className="font-medium">Método de pago</p>
               <p className="text-sm text-gray-600 capitalize">
@@ -140,7 +186,6 @@ export default function ReviewPage() {
               </Link>
             </div>
 
-            {/* Totales */}
             <div className="grid grid-cols-2 mb-6">
               <span>Subtotal</span>
               <span className="text-right">${subtotal}</span>
@@ -151,9 +196,12 @@ export default function ReviewPage() {
               </span>
             </div>
 
-            {/* Acción */}
-            <button className="btn-primary w-full">
-              Confirmar y pagar
+            <button
+              className="btn-primary w-full disabled:opacity-60"
+              disabled={isSubmitting}
+              onClick={onConfirm}
+            >
+              {isSubmitting ? 'Creando orden...' : 'Confirmar y pagar'}
             </button>
           </div>
         </div>

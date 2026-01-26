@@ -5,6 +5,7 @@ export interface CheckoutAddress {
   address2?: string;
   postalCode: string;
   city: string;
+  state: string;
   country: string;
   phone: string;
 }

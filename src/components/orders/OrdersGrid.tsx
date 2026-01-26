@@ -1,4 +1,5 @@
 import { Order } from "@/interfaces/orders.interface";
+import Link from "next/link";
 
 interface Props {
   orders: Order[];
@@ -32,9 +33,9 @@ export const OrdersGrid = ({ orders }: Props) => {
               <td className="px-6 py-4">{order.customerName}</td>
               <td className="px-6 py-4">{order.status}</td>
               <td className="px-6 py-4">
-                <a href={`/orders/${order.id}`} className="underline">
+                <Link href={`/orders/${order.id}`} className="underline">
                   Ver orden
-                </a>
+                </Link>
               </td>
             </tr>
           ))}

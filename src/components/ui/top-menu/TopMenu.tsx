@@ -13,13 +13,18 @@ import { selectCartTotalItems } from '@/store/cart/cart.selectors';
 
 export const TopMenu = () => {
 
+  const [mounted, setMounted] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
+
   const dispatch = useAppDispatch();
   const totalItems = useAppSelector(selectCartTotalItems);
 
   useEffect(() => {
+    setMounted(true);
     fetchCategories().then(setCategories);
   }, []);
+
+  if (!mounted) return null; // 👈 CLAVE
 
   return (
     <nav className="flex px-5 justify-between items-center w-full">
