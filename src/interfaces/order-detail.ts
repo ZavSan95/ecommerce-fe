@@ -1,3 +1,6 @@
+import { OrderPayment } from "./oder-payment";
+import { OrderItem } from "./order-item";
+
 export interface OrderDetail {
   id: string;
   orderNumber: string;

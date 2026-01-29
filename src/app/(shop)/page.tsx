@@ -1,37 +1,16 @@
 import { ProductGrid, Title } from '@/components';
-import { Product } from '@/interfaces';
-import { initialData } from '@/seed/seed';
-
-
-async function getProducts(): Promise<Product[]> {
-  try {
-    const res = await fetch('http://localhost:3000/api/catalog/products', {
-      cache: 'no-store',
-    });
-
-    if (!res.ok) {
-      console.error('Error HTTP al obtener productos');
-      return [];
-    }
-
-    const data = await res.json();
-
-    // seguridad extra por si la API devuelve algo raro
-    if (!Array.isArray(data)) {
-      return [];
-    }
-
-    return data;
-
-  } catch (error) {
-    console.error('Error fetch productos:', error);
-    return [];
-  }
-}
-
+import { getProducts } from '@/services/products.service';
 
 export default async function Home() {
-  const products = await getProducts();
+
+  const response = await getProducts({
+    page: 1,
+    limit: 6,
+    sort: 'createdAt:desc', // opcional
+  });
+
+  const products = response.data ?? [];
+
   return (
     <>
       <Title
@@ -47,7 +26,6 @@ export default async function Home() {
       ) : (
         <ProductGrid products={products} />
       )}
-      
     </>
   );
 }

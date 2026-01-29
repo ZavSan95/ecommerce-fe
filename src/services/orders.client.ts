@@ -1,9 +1,8 @@
 import { endpoints } from '@/config/api';
 import { PaymentProvider } from '@/enum/payments-providers';
-import { OrderDetail } from '@/interfaces/order-detail';
+import { OrderApiResponse } from '@/interfaces/order-api-response.interface';
 import { Order } from '@/interfaces/orders.interface';
-import { cookies } from 'next/headers';
-
+import { PaginatedResponse } from '@/interfaces/pagination.interface';
 
 export async function getMyOrders(): Promise<Order[]> {
   const res = await fetch(endpoints.my_orders(), {
@@ -69,6 +68,34 @@ export async function createOrder(payload: CreateOrderPayload): Promise<Checkout
   if (!res.ok) {
     const err = await res.json().catch(() => null);
     throw new Error(err?.message ?? 'No se pudo crear la orden');
+  }
+
+  return res.json();
+}
+
+type GetOrdersParams = {
+  page?: number;
+  limit?: number;
+  search?: string;
+  sort?: string;
+};
+
+export async function getOrders(
+  params: GetOrdersParams = {}
+): Promise<PaginatedResponse<OrderApiResponse>> {
+  const query = new URLSearchParams();
+
+  if (params.page) query.set('page', String(params.page));
+  if (params.limit) query.set('limit', String(params.limit));
+  if (params.search) query.set('search', params.search);
+  if (params.sort) query.set('sort', params.sort);
+
+  const res = await fetch(endpoints.orders, {
+    cache: 'no-store',
+  });
+
+  if (!res.ok) {
+    throw new Error('Error al obtener órdenes');
   }
 
   return res.json();

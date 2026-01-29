@@ -1,4 +1,6 @@
 import { endpoints } from "@/config/api";
+import { PaginatedResponse } from "@/interfaces/pagination.interface";
+import { User } from "@/interfaces/user.interface";
 
 interface LoginResponse {
     user: {
@@ -47,6 +49,36 @@ export async function logoutRequest(){
 
   if(!res.ok){
     throw new Error('Error al cerrar sesión');
+  }
+
+  return res.json();
+}
+
+type FetchUserParams = {
+  page?: number;
+  limit?: number;
+  search?: string;
+  sort?: string;
+};
+
+export async function fetchUsers(
+  params: FetchUserParams = {}
+): Promise<PaginatedResponse<User>> {
+
+  const query = new URLSearchParams();
+
+  if (params.page) query.set('page', String(params.page));
+  if (params.limit) query.set('limit', String(params.limit));
+  if (params.search) query.set('search', params.search);
+  if (params.sort) query.set('sort', params.sort);
+
+  const res = await fetch(
+    `${endpoints.users}?${query.toString()}`,
+    { cache: 'no-store' }
+  );
+
+  if (!res.ok) {
+    throw new Error('Error al obtener usuarios');
   }
 
   return res.json();

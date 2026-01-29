@@ -10,9 +10,11 @@ export const endpoints = {
   login: `${API_URL}/auth/login`,
   me: `${API_URL}/auth/me`,
   logout: `${API_URL}/auth/logout`,
+  users: `${API_URL}/auth/users`,
 
   my_orders: () => `${API_URL}/orders/my`,
   orderById: (id: string) => `${API_URL}/orders/order/${id}`,
   orders_checkout: () => `${API_URL}/orders/checkout`,
+  orders: `${API_URL}/orders`,
 
 };

@@ -1,17 +1,18 @@
 import { endpoints } from '@/config/api';
-import { Category } from '@/interfaces/categories.interface';
+import { Product } from '@/interfaces';
 import { PaginatedResponse } from '@/interfaces/pagination.interface';
 
-type FetchCategoriesParams = {
+type FetchProductsParams = {
   page?: number;
   limit?: number;
   search?: string;
   sort?: string;
 };
 
-export async function fetchCategories(
-  params: FetchCategoriesParams = {}
-): Promise<PaginatedResponse<Category>> {
+export async function getProducts(
+    params: FetchProductsParams = {}
+): Promise<PaginatedResponse<Product>> {
+  try {
 
   const query = new URLSearchParams();
 
@@ -21,14 +22,13 @@ export async function fetchCategories(
   if (params.sort) query.set('sort', params.sort);
 
   const res = await fetch(
-    `${endpoints.categories}?${query.toString()}`,
+    `${endpoints.products}?${query.toString()}`,
     { cache: 'no-store' }
   );
 
-  if (!res.ok) {
+  return res.json();
+
+  } catch (error) {
     throw new Error('Error al obtener categorías');
   }
-
-  return res.json();
 }
-

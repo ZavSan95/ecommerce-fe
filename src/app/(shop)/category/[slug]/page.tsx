@@ -35,7 +35,7 @@ export default async function CategoryPage({ params }: Props) {
     getProductsByCategory(slug),
   ]);
 
-  const category = categories.find( c => c.slug === slug);
+  const category = categories.data.find( c => c.slug === slug);
 
   if (!category) {
     notFound();

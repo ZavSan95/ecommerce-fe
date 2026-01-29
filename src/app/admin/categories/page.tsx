@@ -1,30 +1,43 @@
 'use client';
-import { AdminTable } from "@/components/admin/AdminTable";
-import { TableActions } from "@/components/admin/TableActions";
-import { fetchCategories } from "@/services/categories.service";
 
-type Category = {
-  id: number;
-  name: string;
-  slug: string;
-  productsCount: number;
-};
+import { useEffect, useState } from 'react';
+import { AdminTable } from '@/components/admin/AdminTable';
+import { TableActions } from '@/components/admin/TableActions';
+import { fetchCategories } from '@/services/categories.service';
+import { Pagination } from '@/components/ui/pagination/Pagination';
 
+import { Category } from '@/interfaces/categories.interface';
+import { CategoryRow } from '@/interfaces/category-row.interface';
+import { PaginationMeta } from '@/interfaces/pagination.interface';
 
+export default function CategoriesAdminPage() {
 
-const categories: Category[] = [
-  { id: 1, name: 'Electrónica', slug: 'electronica', productsCount: 42 },
-  { id: 2, name: 'Hogar', slug: 'hogar', productsCount: 18 },
-  { id: 3, name: 'Deportes', slug: 'deportes', productsCount: 27 },
-];
+  const [rows, setRows] = useState<CategoryRow[]>([]);
+  const [meta, setMeta] = useState<PaginationMeta | null>(null);
+  const [page, setPage] = useState(1);
 
-export default async function CategoriesAdminPage() {
+  useEffect(() => {
+    fetchCategories({ page, limit: 10 })
+      .then(res => {
+        // 🔁 Mapeo de modelo API → modelo UI
+        const mappedRows: CategoryRow[] = res.data.map((cat: Category) => ({
+          id: cat._id,
+          name: cat.name,
+          slug: cat.slug,
+        }));
 
-  const categorias = await fetchCategories();
-  
+        setRows(mappedRows);
+        setMeta(res.meta);
+      })
+      .catch(err => {
+        console.error('Error cargando categorías', err);
+      });
+  }, [page]);
 
   return (
     <div className="space-y-4">
+
+      {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Categorías</h1>
 
@@ -36,22 +49,14 @@ export default async function CategoriesAdminPage() {
         </a>
       </div>
 
-      <AdminTable<Category>
+      {/* Tabla */}
+      <AdminTable<CategoryRow>
         columns={[
           { key: 'name', label: 'Nombre' },
           { key: 'slug', label: 'Slug', className: 'text-slate-500' },
-          {
-            key: 'productsCount',
-            label: 'Productos',
-            render: row => (
-              <span className="px-2 py-1 rounded-lg text-xs bg-slate-100">
-                {row.productsCount}
-              </span>
-            ),
-          },
           { key: 'actions', label: 'Acciones', className: 'text-right' },
         ]}
-        data={categories}
+        data={rows}
         renderActions={row => (
           <TableActions
             editHref={`/admin/categories/${row.id}/edit`}
@@ -59,6 +64,15 @@ export default async function CategoriesAdminPage() {
           />
         )}
       />
+
+      {/* Paginación */}
+      {meta && (
+        <Pagination
+          current={meta.currentPage}
+          total={meta.totalPages}
+          onChange={setPage}
+        />
+      )}
     </div>
   );
 }

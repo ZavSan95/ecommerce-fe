@@ -21,10 +21,19 @@ export const TopMenu = () => {
 
   useEffect(() => {
     setMounted(true);
-    fetchCategories().then(setCategories);
+
+    // 🔹 Pedimos muchas categorías de una sola vez
+    fetchCategories({ limit: 6 })
+      .then(res => {
+        setCategories(res.data);
+      })
+      .catch(() => {
+        setCategories([]);
+      });
+
   }, []);
 
-  if (!mounted) return null; // 👈 CLAVE
+  if (!mounted) return null;
 
   return (
     <nav className="flex px-5 justify-between items-center w-full">

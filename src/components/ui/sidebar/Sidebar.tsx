@@ -32,12 +32,6 @@ export const Sidebar = () => {
   const router = useRouter();
   const dispatch = useAppDispatch();
 
-  const [categories, setCategories] = useState<Category[]>([]);
-
-  useEffect(() => {
-    fetchCategories().then(setCategories);
-  }, []);
-
   const handleLogout = async () => {
     try {
       await logoutRequest();
@@ -98,20 +92,7 @@ export const Sidebar = () => {
 
         {/* Categorías (mobile) */}
         <div className="sm:hidden mt-8">
-          <h3 className="text-lg font-semibold mb-3">Categorías</h3>
 
-          {categories.map(category => (
-            <Link
-              key={category._id}
-              href={`/category/${category.slug}`}
-              onClick={() => dispatch(closeSideMenu())}
-              className="block py-2 px-2 rounded hover:bg-gray-100 capitalize"
-            >
-              {category.name}
-            </Link>
-          ))}
-
-          <div className="w-full h-px bg-gray-200 my-6" />
         </div>
 
         {/* 🔐 Usuario logueado */}
