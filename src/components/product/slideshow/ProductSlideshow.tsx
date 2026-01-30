@@ -1,22 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-
-import { Swiper as SwiperObject } from 'swiper';
+import Image from 'next/image';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay, FreeMode, Navigation, Thumbs } from 'swiper/modules';
-
+import { Swiper as SwiperObject } from 'swiper';
+import { Navigation, Thumbs } from 'swiper/modules';
 
 import 'swiper/css';
-import 'swiper/css/free-mode';
 import 'swiper/css/navigation';
 import 'swiper/css/thumbs';
 
-import './slideshow.css';
-import Image from 'next/image';
 import { getProductImageUrl } from '@/utils/assets';
-
-
 
 interface Props {
   images: string[];
@@ -24,64 +18,59 @@ interface Props {
   className?: string;
 }
 
-
-
 export const ProductSlideshow = ({ images, title, className }: Props) => {
-
-  const [thumbsSwiper, setThumbsSwiper] = useState<SwiperObject>();
+  const [thumbsSwiper, setThumbsSwiper] = useState<SwiperObject | null>(null);
 
   return (
-    <div className={className}>
+    <div className={`flex flex-col gap-3 ${className}`}>
 
+      {/* Imagen principal */}
       <Swiper
-        style={{
-          '--swiper-navigation-color': '#fff',
-          '--swiper-pagination-color': '#fff',
-        } as React.CSSProperties}
-        spaceBetween={10}
+        modules={[Navigation, Thumbs]}
         navigation
-        autoplay={{ delay: 2500 }}
         thumbs={{
-          swiper: thumbsSwiper && !thumbsSwiper.destroyed ? thumbsSwiper : null
+          swiper: thumbsSwiper && !thumbsSwiper.destroyed ? thumbsSwiper : null,
         }}
-        modules={[FreeMode, Navigation, Thumbs, Autoplay]}
-        className="mySwiper2"
+        className="h-[55vh] w-full rounded-lg"
       >
         {images.map(image => (
-          <SwiperSlide key={image}>
+          <SwiperSlide key={image} className="flex items-center justify-center">
             <Image
-              width={1024}
-              height={800}
               src={getProductImageUrl(image)}
               alt={title}
-              className="rounded-lg object-fill"
+              fill
+              className="object-contain"
+              priority
             />
           </SwiperSlide>
         ))}
       </Swiper>
 
+      {/* Thumbnails */}
       <Swiper
         onSwiper={setThumbsSwiper}
-        spaceBetween={10}
-        slidesPerView={4}
-        freeMode
+        modules={[Thumbs]}
+        slidesPerView={5}
+        spaceBetween={8}
         watchSlidesProgress
-        modules={[FreeMode, Navigation, Thumbs]}
-        className="mySwiper"
+        className="h-[90px]"
       >
         {images.map(image => (
-          <SwiperSlide key={image}>
-            <Image
-              width={300}
-              height={300}
-              src={getProductImageUrl(image)}
-              alt={title}
-              className="rounded-lg object-fill"
-            />
+          <SwiperSlide
+            key={image}
+            className="flex items-center justify-center"
+          >
+            <div className="relative w-full h-full rounded-md border border-slate-200 hover:border-slate-400 transition">
+              <Image
+                src={getProductImageUrl(image)}
+                alt={title}
+                fill
+                className="object-contain p-1"
+              />
+            </div>
           </SwiperSlide>
         ))}
       </Swiper>
-
     </div>
   );
 };

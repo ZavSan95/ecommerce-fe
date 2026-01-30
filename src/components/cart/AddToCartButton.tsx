@@ -1,10 +1,8 @@
 'use client';
 
-import { useAppDispatch } from '@/store/hooks';
-import { addItem } from '@/store/cart/cartSlice';
-import { CartItem } from '@/interfaces/cart-item.interface';
 import { Product, ProductVariant } from '@/interfaces/product.interface';
-import { getProductImageUrl } from '@/utils/assets';
+import { useAddToCart } from '@/hooks/useAddToCart';
+import { FiShoppingCart } from 'react-icons/fi';
 
 interface Props {
   product: Product;
@@ -12,34 +10,22 @@ interface Props {
 }
 
 export const AddToCartButton = ({ product, variant }: Props) => {
-  const dispatch = useAppDispatch();
-
-  const handleAddToCart = () => {
-    const item: CartItem = {
-      productId: product._id,
-      productName: product.name,
-
-      variantSku: variant.sku,
-
-      price: variant.price,
-      quantity: 1,
-      stock: variant.stock,
-
-      attributes: variant.attributes,
-      image: variant.images?.[0]
-        ? getProductImageUrl(variant.images[0])
-        : undefined,
-    };
-
-    dispatch(addItem(item));
-  };
+  const { addToCart } = useAddToCart();
 
   return (
     <button
-      onClick={handleAddToCart}
-      className="btn-primary my-5 w-full"
+      onClick={() => addToCart(product, variant)}
       disabled={variant.stock === 0}
+      className="
+        flex items-center gap-2
+        text-sm font-medium
+        text-slate-900
+        hover:text-black
+        transition
+        disabled:opacity-40
+      "
     >
+      <FiShoppingCart size={18} />
       {variant.stock === 0 ? 'Sin stock' : 'Agregar al carrito'}
     </button>
   );
