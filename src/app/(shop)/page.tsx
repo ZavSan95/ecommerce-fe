@@ -1,4 +1,5 @@
 import { ProductGrid, Title } from '@/components';
+import { HomeBannerSlider } from '@/components/ui/home/HomeBannerSlider';
 import { getProducts } from '@/services/products.service';
 
 export default async function Home() {
@@ -13,6 +14,7 @@ export default async function Home() {
 
   return (
     <>
+      <HomeBannerSlider />
       <Title
         title="Tienda"
         subtitle="Todos los productos"

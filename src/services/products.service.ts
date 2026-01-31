@@ -1,6 +1,6 @@
 import { endpoints } from '@/config/api';
 import { Product } from '@/interfaces';
-import { PaginatedResponse } from '@/interfaces/pagination.interface';
+import { PaginatedResponse, PaginationMeta } from '@/interfaces/pagination.interface';
 
 type FetchProductsParams = {
   page?: number;
@@ -10,25 +10,34 @@ type FetchProductsParams = {
 };
 
 export async function getProducts(
-    params: FetchProductsParams = {}
+  params: FetchProductsParams = {}
 ): Promise<PaginatedResponse<Product>> {
+
   try {
+    const query = new URLSearchParams();
 
-  const query = new URLSearchParams();
+    if (params.page) query.set('page', String(params.page));
+    if (params.limit) query.set('limit', String(params.limit));
+    if (params.search) query.set('search', params.search);
+    if (params.sort) query.set('sort', params.sort);
 
-  if (params.page) query.set('page', String(params.page));
-  if (params.limit) query.set('limit', String(params.limit));
-  if (params.search) query.set('search', params.search);
-  if (params.sort) query.set('sort', params.sort);
+    const res = await fetch(
+      `${endpoints.products}?${query.toString()}`,
+      { cache: 'no-store' }
+    );
 
-  const res = await fetch(
-    `${endpoints.products}?${query.toString()}`,
-    { cache: 'no-store' }
-  );
+    if (!res.ok) throw new Error();
+    if (!res.headers.get('content-type')?.includes('application/json')) {
+      throw new Error();
+    }
 
-  return res.json();
+    return await res.json();
 
-  } catch (error) {
-    throw new Error('Error al obtener categorías');
+  } catch {
+    return {
+      data: [],
+      meta: {} as PaginationMeta,
+    };
   }
 }
+
