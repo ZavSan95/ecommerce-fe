@@ -22,5 +22,7 @@ export const endpoints = {
   orders_checkout: () => `${API_URL}/orders/checkout`,
   orders: `${API_URL}/orders`,
 
+  favorites: () => `${API_URL}/favorites`,
+
 
 };

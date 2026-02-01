@@ -24,7 +24,9 @@ export async function fetchCategories(
 
   const res = await fetch(
     `${endpoints.categories}?${query.toString()}`,
-    { cache: 'no-store' }
+    { 
+      cache: 'no-store',
+    }
   );
 
   if (!res.ok) {

@@ -2,42 +2,46 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { IoSearchOutline, IoCartOutline } from 'react-icons/io5';
+import {
+  IoSearchOutline,
+  IoCartOutline,
+  IoCloseOutline,
+} from 'react-icons/io5';
 
 import { titleFont } from '@/config/fonts';
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
-import { openCart, openSideMenu } from '@/store/ui/uiSlice';
+import {
+  openCart,
+  closeCart,
+  openSideMenu,
+  closeSideMenu,
+} from '@/store/ui/uiSlice';
 import { Category } from '@/interfaces/categories.interface';
 import { fetchCategories } from '@/services/categories.service';
 import { selectCartTotalItems } from '@/store/cart/cart.selectors';
 
 export const TopMenu = () => {
-
   const [mounted, setMounted] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
 
   const dispatch = useAppDispatch();
+
   const totalItems = useAppSelector(selectCartTotalItems);
+  const isSideMenuOpen = useAppSelector(state => state.ui.isSideMenuOpen);
+  const isCartOpen = useAppSelector(state => state.ui.isCartOpen);
 
   useEffect(() => {
     setMounted(true);
 
-    // 🔹 Pedimos muchas categorías de una sola vez
     fetchCategories({ limit: 6 })
-      .then(res => {
-        setCategories(res.data);
-      })
-      .catch(() => {
-        setCategories([]);
-      });
-
+      .then(res => setCategories(res.data))
+      .catch(() => setCategories([]));
   }, []);
 
   if (!mounted) return null;
 
   return (
     <nav className="flex px-5 justify-between items-center w-full">
-
       {/* Logo */}
       <div>
         <Link href="/">
@@ -48,7 +52,7 @@ export const TopMenu = () => {
         </Link>
       </div>
 
-      {/* Center Menu */}
+      {/* Center Menu (desktop) */}
       <div className="hidden sm:block">
         {categories.length === 0 ? (
           <span className="text-sm text-gray-400">Sin categorías</span>
@@ -67,27 +71,80 @@ export const TopMenu = () => {
 
       {/* Actions */}
       <div className="flex items-center">
-        <Link href="/search" className="mx-2">
+        {/* Search */}
+        <Link href="/search" className="mx-2 p-2 rounded-md hover:bg-gray-100">
           <IoSearchOutline className="w-5 h-5" />
         </Link>
 
+        {/* Cart toggle */}
         <button
-          onClick={() => dispatch(openCart())}
-          className="mx-2 relative"
+          onClick={() =>
+            isCartOpen
+              ? dispatch(closeCart())
+              : dispatch(openCart())
+          }
+          aria-label={isCartOpen ? 'Cerrar carrito' : 'Abrir carrito'}
+          className="mx-2 relative p-2 rounded-md hover:bg-gray-100 transition"
         >
-          {totalItems > 0 && (
-            <span className="absolute -top-2 -right-2 text-xs bg-blue-700 text-white rounded-full px-1">
+          {totalItems > 0 && !isCartOpen && (
+            <span className="absolute -top-1 -right-2 text-xs bg-blue-700 text-white rounded-full px-1.5">
               {totalItems}
             </span>
           )}
-          <IoCartOutline className="w-5 h-5" />
+
+          {isCartOpen ? (
+            <IoCloseOutline className="w-5 h-5 text-gray-800" />
+          ) : (
+            <IoCartOutline className="w-5 h-5 text-gray-800" />
+          )}
         </button>
 
+        {/* Sidebar toggle (hamburger ↔ X) */}
         <button
-          onClick={() => dispatch(openSideMenu())}
-          className="m-2 p-2 rounded-md transition-all hover:bg-gray-100"
+          onClick={() =>
+            isSideMenuOpen
+              ? dispatch(closeSideMenu())
+              : dispatch(openSideMenu())
+          }
+          aria-label={isSideMenuOpen ? 'Cerrar menú' : 'Abrir menú'}
+          className="m-2 p-2 rounded-md hover:bg-gray-100 transition flex items-center justify-center"
         >
-          Menú
+          <div className="relative w-4 h-4">
+            {/* Línea superior */}
+            <span
+              className={`
+                absolute left-0 top-1/2
+                w-4 h-[1.5px]
+                bg-gray-800
+                transition-transform duration-300
+                origin-center
+                ${isSideMenuOpen ? 'rotate-45' : '-translate-y-1.5'}
+              `}
+            />
+
+            {/* Línea del medio */}
+            <span
+              className={`
+                absolute left-0 top-1/2
+                w-4 h-[1.5px]
+                bg-gray-800
+                transition-opacity duration-200
+                ${isSideMenuOpen ? 'opacity-0' : 'opacity-100'}
+              `}
+            />
+
+            {/* Línea inferior */}
+            <span
+              className={`
+                absolute left-0 top-1/2
+                w-4 h-[1.5px]
+                bg-gray-800
+                transition-transform duration-300
+                origin-center
+                ${isSideMenuOpen ? '-rotate-45' : 'translate-y-1.5'}
+              `}
+            />
+          </div>
         </button>
       </div>
     </nav>

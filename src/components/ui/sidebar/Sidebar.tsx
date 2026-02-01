@@ -11,21 +11,17 @@ import {
   IoSearchOutline,
   IoShirtOutline,
   IoTicketOutline,
+  IoHeartOutline,
 } from 'react-icons/io5';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { closeSideMenu } from '@/store/ui/uiSlice';
-import { fetchCategories } from '@/services/categories.service';
-import { useEffect, useState } from 'react';
-import { Category } from '@/interfaces/categories.interface';
 import { useRouter } from 'next/navigation';
 import { logoutRequest } from '@/services/auth.service';
 import { clearAuth } from '@/store/auth/authSlice';
 import toast from 'react-hot-toast';
 
 export const Sidebar = () => {
-
-  // 🔹 Hooks normales, sin guards raros
   const { isAuthenticated, user } = useAppSelector(state => state.auth);
   const isSideMenuOpen = useAppSelector(state => state.ui.isSideMenuOpen);
 
@@ -44,6 +40,13 @@ export const Sidebar = () => {
       router.replace('/');
     }
   };
+
+  // 🔁 Items reutilizables
+  const userMenuItems = [
+    { href: '/profile', label: 'Perfil', icon: IoPersonOutline },
+    { href: '/orders', label: 'Órdenes', icon: IoTicketOutline },
+    { href: '/favorites', label: 'Favoritos', icon: IoHeartOutline },
+  ];
 
   return (
     <>
@@ -71,18 +74,12 @@ export const Sidebar = () => {
           }
         )}
       >
-        {/* Close */}
-        <button
-          aria-label="Cerrar menú"
-          onClick={() => dispatch(closeSideMenu())}
-          className="absolute top-4 right-4 rounded-full p-1 hover:bg-gray-100 transition"
-        >
-          <IoCloseOutline size={36} />
-        </button>
-
         {/* Search */}
         <div className="relative mt-14">
-          <IoSearchOutline size={20} className="absolute top-3 left-3 text-gray-500" />
+          <IoSearchOutline
+            size={20}
+            className="absolute top-3 left-3 text-gray-500"
+          />
           <input
             type="text"
             placeholder="Buscar productos"
@@ -90,89 +87,130 @@ export const Sidebar = () => {
           />
         </div>
 
-        {/* Categorías (mobile) */}
-        <div className="sm:hidden mt-8">
+        {/* ===================== */}
+        {/* 📱 MOBILE MENU (único) */}
+        {/* ===================== */}
+        <div className="sm:hidden mt-8 space-y-1">
+          {isAuthenticated ? (
+            <>
+              {userMenuItems.map(item => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => dispatch(closeSideMenu())}
+                  className="flex items-center gap-3 p-2 rounded hover:bg-gray-100"
+                >
+                  <item.icon size={22} />
+                  <span className="text-base">{item.label}</span>
+                </Link>
+              ))}
 
+              <button
+                onClick={handleLogout}
+                className="flex w-full items-center gap-3 p-2 rounded hover:bg-gray-100 text-left"
+              >
+                <IoLogOutOutline size={22} />
+                <span className="text-base">Salir</span>
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                href="/auth/login"
+                onClick={() => dispatch(closeSideMenu())}
+                className="flex items-center gap-3 p-2 rounded hover:bg-gray-100"
+              >
+                <IoLogInOutline size={22} />
+                <span className="text-base">Ingresar</span>
+              </Link>
+
+              <Link
+                href="/auth/register"
+                onClick={() => dispatch(closeSideMenu())}
+                className="flex items-center gap-3 p-2 rounded hover:bg-gray-100"
+              >
+                <IoPersonOutline size={22} />
+                <span className="text-base">Crear cuenta</span>
+              </Link>
+            </>
+          )}
         </div>
 
-        {/* 🔐 Usuario logueado */}
-        {isAuthenticated && (
-          <>
-            <Link
-              href="/profile"
-              onClick={() => dispatch(closeSideMenu())}
-              className="flex items-center gap-3 p-2 rounded hover:bg-gray-100"
-            >
-              <IoPersonOutline size={22} />
-              <span className="text-lg">Perfil</span>
-            </Link>
+        {/* ===================== */}
+        {/* 🖥 DESKTOP ONLY */}
+        {/* ===================== */}
+        <div className="hidden sm:block mt-8 space-y-1">
+          {isAuthenticated && (
+            <>
+              {userMenuItems.map(item => (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => dispatch(closeSideMenu())}
+                  className="flex items-center gap-3 p-2 rounded hover:bg-gray-100"
+                >
+                  <item.icon size={22} />
+                  <span className="text-lg">{item.label}</span>
+                </Link>
+              ))}
 
-            <Link
-              href="/orders"
-              onClick={() => dispatch(closeSideMenu())}
-              className="flex items-center gap-3 p-2 rounded hover:bg-gray-100"
-            >
-              <IoTicketOutline size={22} />
-              <span className="text-lg">Órdenes</span>
-            </Link>
+              <button
+                onClick={handleLogout}
+                className="flex w-full items-center gap-3 p-2 rounded hover:bg-gray-100 text-left"
+              >
+                <IoLogOutOutline size={22} />
+                <span className="text-lg">Salir</span>
+              </button>
+            </>
+          )}
 
-            <button
-              onClick={handleLogout}
-              className="flex w-full items-center gap-3 p-2 rounded hover:bg-gray-100 text-left"
-            >
-              <IoLogOutOutline size={22} />
-              <span className="text-lg">Salir</span>
-            </button>
-          </>
-        )}
+          {!isAuthenticated && (
+            <>
+              <Link
+                href="/auth/login"
+                onClick={() => dispatch(closeSideMenu())}
+                className="flex items-center gap-3 p-2 rounded hover:bg-gray-100"
+              >
+                <IoLogInOutline size={22} />
+                <span className="text-lg">Ingresar</span>
+              </Link>
 
-        {/* 🔓 No logueado */}
-        {!isAuthenticated && (
-          <>
-            <Link
-              href="/auth/login"
-              onClick={() => dispatch(closeSideMenu())}
-              className="flex items-center gap-3 p-2 rounded hover:bg-gray-100"
-            >
-              <IoLogInOutline size={22} />
-              <span className="text-lg">Ingresar</span>
-            </Link>
+              <Link
+                href="/auth/register"
+                onClick={() => dispatch(closeSideMenu())}
+                className="flex items-center gap-3 p-2 rounded hover:bg-gray-100"
+              >
+                <IoPersonOutline size={22} />
+                <span className="text-lg">Crear cuenta</span>
+              </Link>
+            </>
+          )}
 
-            <Link
-              href="/auth/register"
-              onClick={() => dispatch(closeSideMenu())}
-              className="flex items-center gap-3 p-2 rounded hover:bg-gray-100"
-            >
-              <IoPersonOutline size={22} />
-              <span className="text-lg">Crear cuenta</span>
-            </Link>
-          </>
-        )}
+          {/* Admin */}
+          {isAuthenticated && user?.roles.includes('admin') && (
+            <>
+              <div className="w-full h-px bg-gray-200 my-6" />
 
-        {/* 🛠 Admin */}
-        {isAuthenticated && user?.roles.includes('admin') && (
-          <>
-            <div className="w-full h-px bg-gray-200 my-6" />
+              <Link
+                href="/admin/products"
+                onClick={() => dispatch(closeSideMenu())}
+                className="flex items-center gap-3 p-2 rounded hover:bg-gray-100"
+              >
+                <IoShirtOutline size={22} />
+                <span className="text-lg">Productos</span>
+              </Link>
 
-            <Link
-              href="/admin/products"
-              onClick={() => dispatch(closeSideMenu())}
-              className="flex items-center gap-3 p-2 rounded hover:bg-gray-100"
-            >
-              <IoShirtOutline size={22} />
-              <span className="text-lg">Productos</span>
-            </Link>
-
-            <Link
-              href="/admin/users"
-              onClick={() => dispatch(closeSideMenu())}
-              className="flex items-center gap-3 p-2 rounded hover:bg-gray-100"
-            >
-              <IoPeopleOutline size={22} />
-              <span className="text-lg">Usuarios</span>
-            </Link>
-          </>
-        )}
+              <Link
+                href="/admin/users"
+                onClick={() => dispatch(closeSideMenu())}
+                className="flex items-center gap-3 p-2 rounded hover:bg-gray-100"
+              >
+                <IoPeopleOutline size={22} />
+                <span className="text-lg">Usuarios</span>
+              </Link>
+            </>
+          )}
+        </div>
       </nav>
     </>
   );

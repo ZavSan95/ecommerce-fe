@@ -49,15 +49,7 @@ export const CartDrawer = () => {
       >
         {/* Header */}
         <div className="relative p-5 border-b">
-          <h2 className="text-lg font-semibold">Carrito</h2>
 
-          <button
-            aria-label="Cerrar carrito"
-            onClick={() => dispatch(closeCart())}
-            className="absolute top-4 right-4 rounded-full p-1 hover:bg-gray-100 transition"
-          >
-            <IoCloseOutline size={32} />
-          </button>
         </div>
 
         {/* Items */}
