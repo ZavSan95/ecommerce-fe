@@ -6,11 +6,12 @@ import toast from 'react-hot-toast';
 import { IoHeartDislikeOutline } from 'react-icons/io5';
 
 import { useAuthGuard } from '@/hooks/useAuthGuard';
-import { getMyFavorites } from '@/services/favorites.service';
+import { getMyFavorites, toggleFavorite  } from '@/services/favorites.service';
+
 
 import { FavoriteItem } from '@/interfaces/favorite-row.interface';
-import { Favorite } from '@/interfaces/favorite.interface';
 import normalizeImage from '@/utils/normalizeImage';
+import Link from 'next/link';
 
 export default function FavoritesPage() {
   const { isAuthenticated } = useAuthGuard('/favorites', 600);
@@ -25,6 +26,8 @@ export default function FavoritesPage() {
       .then(res => {
         const mapped: FavoriteItem[] = res.data.map(fav => ({
           id: fav.id,
+          productId: fav.productId,
+          sku: fav.sku,
           name: fav.product?.name,
           image: normalizeImage(fav.product?.image),
           category: fav.product?.category,
@@ -39,10 +42,17 @@ export default function FavoritesPage() {
       .finally(() => setLoading(false));
   }, [isAuthenticated]);
 
-  const handleRemove = (id: string) => {
-    // luego acá llamás al backend
-    setItems(prev => prev.filter(item => item.id !== id));
-    toast.success('Eliminado de favoritos');
+  const handleRemove = async (productId: string, sku: string) => {
+    try {
+      const res = await toggleFavorite({productId, sku});
+
+      if(!res.isFavorite){
+        setItems(prev => prev.filter(item => item.productId !== productId));
+        toast.success('Eliminado de favoritos 💔');
+      }
+    } catch (error) {
+      toast.error('No se pudo eliminar el favorito');
+    }
   };
 
   if (!isAuthenticated) return null;
@@ -66,10 +76,28 @@ export default function FavoritesPage() {
 
       {/* Empty */}
       {!loading && items.length === 0 && (
-        <div className="text-center py-20 text-gray-500">
-          Todavía no agregaste productos a favoritos
+        <div className="flex flex-col items-center justify-center py-24 text-gray-500 gap-6">
+          
+          <Image
+            src="/imgs/empty-favorites.webp"
+            alt="Sin favoritos"
+            width={280}
+            height={280}
+            priority
+          />
+
+          <div className="text-center space-y-1">
+            <p className="text-lg font-medium text-gray-700">
+              No hay favoritos aún
+            </p>
+            <p className="text-sm text-gray-500">
+              Todavía no agregaste productos a favoritos
+            </p>
+          </div>
+
         </div>
       )}
+
 
       {/* Grid */}
       <div
@@ -95,8 +123,9 @@ export default function FavoritesPage() {
               group
             "
           >
-            {/* Imagen */}
-            <div className="relative aspect-square bg-gray-100">
+          {/* Imagen */}
+          <Link href={`/product/${item.sku}`}>
+            <div className="relative aspect-square bg-gray-100 cursor-pointer">
               {item.image ? (
                 <Image
                   src={item.image}
@@ -116,23 +145,21 @@ export default function FavoritesPage() {
 
               {/* Remove */}
               <button
-                onClick={() => handleRemove(item.id)}
+                onClick={(e) => {
+                  e.preventDefault();   // ⛔ evita navegación
+                  e.stopPropagation();  // ⛔ evita bubbling
+                  handleRemove(item.productId, item.sku);
+                }}
                 className="
-                  absolute
-                  top-3
-                  right-3
-                  p-2
-                  rounded-full
-                  bg-white/90
-                  hover:bg-red-50
-                  text-red-500
-                  transition
+                  absolute top-3 right-3 p-2 rounded-full
+                  bg-white/90 hover:bg-red-50 text-red-500 transition
                 "
-                title="Quitar de favoritos"
               >
                 <IoHeartDislikeOutline size={18} />
               </button>
             </div>
+          </Link>
+
 
             {/* Info */}
             <div className="p-4 space-y-1">

@@ -7,9 +7,13 @@ type GetMyFavoritesParams = {
   limit?: number;
 };
 
+/* ============================
+   GET MY FAVORITES
+============================ */
 export async function getMyFavorites(
   params: GetMyFavoritesParams = {},
 ): Promise<PaginatedResponse<Favorite>> {
+
   const { page = 1, limit = 10 } = params;
 
   const query = new URLSearchParams({
@@ -34,6 +38,23 @@ export async function getMyFavorites(
   return res.json();
 }
 
-export async function addFavorite(){
-  
-}
+export const toggleFavorite = async (payload: {
+  productId: string;
+  sku: string;
+}) => {
+  const res = await fetch(`${endpoints.favorites()}/toggle`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    throw new Error('Error toggling favorite');
+  }
+
+  return res.json() as Promise<{
+    isFavorite: boolean;
+    favoriteId: string | null;
+  }>;
+};

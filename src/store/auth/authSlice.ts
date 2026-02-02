@@ -10,11 +10,13 @@ export interface User {
 interface AuthState {
   isAuthenticated: boolean;
   user: User | null;
+  isInitialized: boolean;
 }
 
 const initialState: AuthState = {
   isAuthenticated: false,
   user: null,
+  isInitialized: false,
 };
 
 const authSlice = createSlice({
@@ -24,11 +26,17 @@ const authSlice = createSlice({
     setUser: (state, action: PayloadAction<User>) => {
       state.isAuthenticated = true;
       state.user = action.payload;
+      state.isInitialized = true;
     },
 
     clearAuth: state => {
       state.isAuthenticated = false;
       state.user = null;
+      state.isInitialized = true;
+    },
+
+    setInitialized: state => {
+      state.isInitialized = true; 
     },
   },
 });

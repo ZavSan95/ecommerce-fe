@@ -6,12 +6,11 @@ import {
   IoCloseOutline,
   IoLogInOutline,
   IoLogOutOutline,
-  IoPeopleOutline,
   IoPersonOutline,
   IoSearchOutline,
-  IoShirtOutline,
   IoTicketOutline,
   IoHeartOutline,
+  IoGridOutline,
 } from 'react-icons/io5';
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks';
@@ -25,8 +24,10 @@ export const Sidebar = () => {
   const { isAuthenticated, user } = useAppSelector(state => state.auth);
   const isSideMenuOpen = useAppSelector(state => state.ui.isSideMenuOpen);
 
-  const router = useRouter();
   const dispatch = useAppDispatch();
+  const router = useRouter();
+
+  const isAdmin = isAuthenticated && user?.roles.includes('admin');
 
   const handleLogout = async () => {
     try {
@@ -41,7 +42,6 @@ export const Sidebar = () => {
     }
   };
 
-  // 🔁 Items reutilizables
   const userMenuItems = [
     { href: '/profile', label: 'Perfil', icon: IoPersonOutline },
     { href: '/orders', label: 'Órdenes', icon: IoTicketOutline },
@@ -67,7 +67,7 @@ export const Sidebar = () => {
           bg-white shadow-2xl
           transform transition-transform duration-300 ease-in-out
           p-5
-          `,
+        `,
           {
             'translate-x-0': isSideMenuOpen,
             'translate-x-full': !isSideMenuOpen,
@@ -87,60 +87,9 @@ export const Sidebar = () => {
           />
         </div>
 
-        {/* ===================== */}
-        {/* 📱 MOBILE MENU (único) */}
-        {/* ===================== */}
-        <div className="sm:hidden mt-8 space-y-1">
+        {/* MENU */}
+        <div className="mt-8 space-y-1">
           {isAuthenticated ? (
-            <>
-              {userMenuItems.map(item => (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => dispatch(closeSideMenu())}
-                  className="flex items-center gap-3 p-2 rounded hover:bg-gray-100"
-                >
-                  <item.icon size={22} />
-                  <span className="text-base">{item.label}</span>
-                </Link>
-              ))}
-
-              <button
-                onClick={handleLogout}
-                className="flex w-full items-center gap-3 p-2 rounded hover:bg-gray-100 text-left"
-              >
-                <IoLogOutOutline size={22} />
-                <span className="text-base">Salir</span>
-              </button>
-            </>
-          ) : (
-            <>
-              <Link
-                href="/auth/login"
-                onClick={() => dispatch(closeSideMenu())}
-                className="flex items-center gap-3 p-2 rounded hover:bg-gray-100"
-              >
-                <IoLogInOutline size={22} />
-                <span className="text-base">Ingresar</span>
-              </Link>
-
-              <Link
-                href="/auth/register"
-                onClick={() => dispatch(closeSideMenu())}
-                className="flex items-center gap-3 p-2 rounded hover:bg-gray-100"
-              >
-                <IoPersonOutline size={22} />
-                <span className="text-base">Crear cuenta</span>
-              </Link>
-            </>
-          )}
-        </div>
-
-        {/* ===================== */}
-        {/* 🖥 DESKTOP ONLY */}
-        {/* ===================== */}
-        <div className="hidden sm:block mt-8 space-y-1">
-          {isAuthenticated && (
             <>
               {userMenuItems.map(item => (
                 <Link
@@ -154,6 +103,22 @@ export const Sidebar = () => {
                 </Link>
               ))}
 
+              {/* ADMIN */}
+              {isAdmin && (
+                <>
+                  <div className="w-full h-px bg-gray-200 my-4" />
+
+                  <Link
+                    href="/admin"
+                    onClick={() => dispatch(closeSideMenu())}
+                    className="flex items-center gap-3 p-2 rounded hover:bg-gray-100"
+                  >
+                    <IoGridOutline size={22} />
+                    <span className="text-lg font-medium">Admin Dashboard</span>
+                  </Link>
+                </>
+              )}
+
               <button
                 onClick={handleLogout}
                 className="flex w-full items-center gap-3 p-2 rounded hover:bg-gray-100 text-left"
@@ -162,9 +127,7 @@ export const Sidebar = () => {
                 <span className="text-lg">Salir</span>
               </button>
             </>
-          )}
-
-          {!isAuthenticated && (
+          ) : (
             <>
               <Link
                 href="/auth/login"
@@ -182,31 +145,6 @@ export const Sidebar = () => {
               >
                 <IoPersonOutline size={22} />
                 <span className="text-lg">Crear cuenta</span>
-              </Link>
-            </>
-          )}
-
-          {/* Admin */}
-          {isAuthenticated && user?.roles.includes('admin') && (
-            <>
-              <div className="w-full h-px bg-gray-200 my-6" />
-
-              <Link
-                href="/admin/products"
-                onClick={() => dispatch(closeSideMenu())}
-                className="flex items-center gap-3 p-2 rounded hover:bg-gray-100"
-              >
-                <IoShirtOutline size={22} />
-                <span className="text-lg">Productos</span>
-              </Link>
-
-              <Link
-                href="/admin/users"
-                onClick={() => dispatch(closeSideMenu())}
-                className="flex items-center gap-3 p-2 rounded hover:bg-gray-100"
-              >
-                <IoPeopleOutline size={22} />
-                <span className="text-lg">Usuarios</span>
               </Link>
             </>
           )}

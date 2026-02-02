@@ -13,17 +13,27 @@ import { useRouter } from 'next/navigation';
 
 interface Props {
   product: Product;
+  isFavorite: boolean;
+  onToggleFavorite: (
+    productId: string,
+    sku: string,
+  ) => Promise<void>;
 }
 
-export const ProductGridItem = ({ product }: Props) => {
-
-  const router = useRouter()
+export const ProductGridItem = ({
+  product,
+  isFavorite,
+  onToggleFavorite,
+}: Props) => {
+  const router = useRouter();
   const { isAuthenticated } = useAppSelector(state => state.auth);
+  const { addToCart } = useAddToCart();
 
-  const defaultVariant =
-    product.variants.find(v => v.isDefault) ?? product.variants[0];
+  const variant =
+    product.variants.find(v => v.isDefault) ??
+    product.variants[0];
 
-  const images = defaultVariant.images ?? [];
+  const images = variant.images ?? [];
 
   const primaryImage = images[0]
     ? getProductImageUrl(images[0])
@@ -34,47 +44,53 @@ export const ProductGridItem = ({ product }: Props) => {
     : null;
 
   const [displayImage, setDisplayImage] = useState(primaryImage);
-  const [isFavorite, setIsFavorite] = useState(false);
+  const [loading, setLoading] = useState(false);
 
-  const { addToCart } = useAddToCart();
-
-  const handleAddToCart = () => {
-      addToCart(product, defaultVariant);
-      toast.success('Producto agregado al carrito');
-  }
-
-  
-  const handleToggleFavorite = ( e: React.MouseEvent ) => {
-
+  const handleToggleFavorite = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    if(!isAuthenticated){
+    if (loading) return;
+
+    if (!isAuthenticated) {
       toast.error('Tenés que iniciar sesión para usar favoritos');
-      router.push(
-        `/auth/login?redirect=/product/${defaultVariant.sku}`
-      );
+      router.push(`/auth/login?redirect=/product/${variant.sku}`);
       return;
     }
 
-    setIsFavorite(prev => !prev);
+    setLoading(true);
 
-  } 
+    try {
+      await onToggleFavorite(product._id, variant.sku);
+
+      toast.success(
+        isFavorite
+          ? 'Eliminado de favoritos 💔'
+          : 'Agregado a favoritos ❤️',
+      );
+    } catch {
+      toast.error('No se pudo actualizar favoritos');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAddToCart = () => {
+    addToCart(product, variant);
+    toast.success('Producto agregado al carrito');
+  };
 
   return (
     <div className="group relative rounded-xl overflow-hidden border bg-white shadow-sm hover:shadow-md transition">
 
       {/* Imagen */}
-      <Link href={`/product/${defaultVariant.sku}`}>
+      <Link href={`/product/${variant.sku}`}>
         <Image
           src={displayImage}
           alt={product.name}
           width={500}
           height={500}
           className="w-full h-auto object-cover"
-          onError={(e) => {
-            (e.currentTarget as any).src = '/placeholder.webp';
-          }}
           onMouseEnter={() =>
             secondaryImage && setDisplayImage(secondaryImage)
           }
@@ -98,23 +114,25 @@ export const ProductGridItem = ({ product }: Props) => {
           transition
           pointer-events-auto
         ">
-        <button
-          onClick={handleAddToCart}
-          className="p-3 rounded-full bg-white shadow hover:bg-slate-100"
-          title="Agregar al carrito"
-        >
-          <FiShoppingCart size={18} />
-        </button>
+          <button
+            onClick={handleAddToCart}
+            className="p-3 rounded-full bg-white shadow hover:bg-slate-100"
+            title="Agregar al carrito"
+          >
+            <FiShoppingCart size={18} />
+          </button>
 
           <button
             onClick={handleToggleFavorite}
+            disabled={loading}
             className={`
               p-3 rounded-full shadow transition
               ${isFavorite
                 ? 'bg-red-500 text-white'
                 : 'bg-white hover:bg-slate-100'}
+              ${loading ? 'opacity-50 cursor-not-allowed' : ''}
             `}
-            title="Agregar a favoritos"
+            title="Favorito"
           >
             <FiHeart size={18} />
           </button>
@@ -124,14 +142,14 @@ export const ProductGridItem = ({ product }: Props) => {
       {/* Info */}
       <div className="p-4 flex flex-col gap-1">
         <Link
-          href={`/product/${defaultVariant.sku}`}
+          href={`/product/${variant.sku}`}
           className="font-medium hover:text-blue-600"
         >
           {product.name}
         </Link>
 
         <span className="font-bold text-lg">
-          ${defaultVariant.price}
+          ${variant.price}
         </span>
       </div>
     </div>

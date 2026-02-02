@@ -23,6 +23,7 @@ export const endpoints = {
   orders: `${API_URL}/orders`,
 
   favorites: () => `${API_URL}/favorites`,
+  favoriteById: (id: string) => `${API_URL}/favorites/${id}`,
 
 
 };

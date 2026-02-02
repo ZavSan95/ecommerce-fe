@@ -16,7 +16,7 @@ export default async function EditCategoryPage({ params }: Props) {
     <div className="space-y-4">
       <h1 className="text-2xl font-bold">Editar categoría</h1>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-6 max-w-xl">
+      <div className="rounded-xl border border-slate-200 bg-white p-6 w-full">
         <CategoryForm
           key={category.updatedAt}
           categoryId={id}
