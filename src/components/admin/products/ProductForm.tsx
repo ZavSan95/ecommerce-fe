@@ -1,242 +1,251 @@
 'use client';
 
-import { useState } from 'react';
-import { VariantImagesUploader } from './VariantImagesUploader';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import {
+  useForm,
+  useFieldArray,
+  FormProvider,
+} from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import toast from 'react-hot-toast';
 
-interface VariantForm {
-  sku: string;
-  price: number;
-  stock: number;
-  images: string[];
-  isDefault: boolean;
+import { productSchema, ProductFormData } from '@/schemas/product.schema';
+import { createProduct, deleteProductImage, updateProduct } from '@/services/products.service';
+import { fetchCategories } from '@/services/categories.service';
+import { Category } from '@/interfaces/categories.interface';
+import { ProductBasicInfo } from './ProductBasicInfo';
+import { ProductVariants } from './ProductVariants';
+import uploadImages from '@/services/upload.service';
+
+
+interface Props {
+  productId?: string;
+  defaultValues?: ProductFormData;
+  isEdit?: boolean;
 }
 
-export function ProductForm() {
-  const [variants, setVariants] = useState<VariantForm[]>([
-    {
-      sku: '',
-      price: 0,
-      stock: 0,
-      images: [],
-      isDefault: true,
+export function ProductForm({
+  productId,
+  defaultValues,
+  isEdit = false,
+}: Props) {
+  const router = useRouter();
+
+  /* ===================== */
+  /* React Hook Form       */
+  /* ===================== */
+  const methods = useForm<ProductFormData>({
+    resolver: zodResolver(productSchema),
+    defaultValues: defaultValues ?? {
+      name: '',
+      description: '',
+      categoryId: '',
+      variants: [
+        {
+          sku: '',
+          price: 0,
+          stock: 0,
+          images: [],
+          imageFiles: [],
+          isDefault: true,
+        },
+      ],
     },
-  ]);
+  });
 
-  const addVariant = () => {
-    setVariants(prev => [
-      ...prev,
-      {
-        sku: '',
-        price: 0,
-        stock: 0,
-        images: [],
-        isDefault: false,
-      },
-    ]);
+  const {
+    control,
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors, isSubmitting },
+    reset
+  } = methods;
+
+  const { fields, append } = useFieldArray({
+    control,
+    name: 'variants',
+  });
+
+  const [currentProduct, setCurrentProduct] = useState<ProductFormData | null>(
+    defaultValues ?? null
+  );
+
+  /* ===================== */
+  /* Categorías            */
+  /* ===================== */
+  const [categories, setCategories] = useState<Category[]>([]);
+
+  useEffect(() => {
+    fetchCategories({ page: 1, limit: 100 })
+      .then(res => setCategories(res.data))
+      .catch(() => toast.error('Error al cargar categorías'));
+  }, []);
+
+  useEffect(() => {
+    if (defaultValues?.categoryId && categories.length > 0) {
+      setValue('categoryId', defaultValues.categoryId);
+    }
+  }, [categories, defaultValues?.categoryId, setValue]);
+
+  useEffect(() => {
+    console.log('isSubmitting:', isSubmitting);
+  }, [isSubmitting]);
+  
+
+  /* ===================== */
+  /* Submit                */
+  /* ===================== */
+  const onSubmit = async (data: ProductFormData) => {
+    try {
+      for (const variant of data.variants) {
+        const hasExistingImages =
+          Array.isArray(variant.images) && variant.images.length > 0;
+
+        const hasNewImages =
+          Array.isArray(variant.imageFiles) &&
+          variant.imageFiles.length > 0;
+
+        // ❌ Validación: al menos una imagen
+        if (!hasExistingImages && !hasNewImages) {
+          throw new Error(
+            `La variante "${variant.sku}" debe tener al menos una imagen`
+          );
+        }
+
+        /* ========================= */
+        /* 🔴 Borrar imágenes marcadas */
+        /* ========================= */
+        if (variant.imagesToRemove?.length) {
+          for (const img of variant.imagesToRemove) {
+            const filename = img.split('/').pop();
+            if (filename) await deleteProductImage(filename);
+          }
+        }
+
+        /* ========================= */
+        /* 🔵 Subir nuevas imágenes   */
+        /* ========================= */
+        if (hasNewImages) {
+          const uploaded = await uploadImages(
+            'products',
+            variant.imageFiles!
+          );
+
+          variant.images = [
+            ...(variant.images ?? []),
+            ...uploaded.map(u => u.key),
+          ];
+        }
+
+        /* ========================= */
+        /* 🧹 Limpieza frontend       */
+        /* ========================= */
+        delete (variant as any).imageFiles;
+        delete (variant as any).imagesToRemove;
+      }
+
+      /* ========================= */
+      /* Guardar producto          */
+      /* ========================= */
+      if (isEdit && productId) {
+
+      const variantsToUpdate = data.variants
+        .filter(v => !v.isNew)
+        .map(v => ({
+          sku: v.sku,
+          price: v.price,
+          stock: v.stock,
+          images: Array.isArray(v.images) ? v.images : [], // ✅ siempre array
+          isDefault: v.isDefault,
+        }));
+
+        const variantsToAdd = data.variants
+          .filter(v => v.isNew)
+          .map(v => ({
+            sku: v.sku,
+            price: v.price,
+            stock: v.stock,
+            images: v.images,
+            isDefault: v.isDefault,
+          }));
+
+        await updateProduct(productId, {
+          name: data.name,
+          description: data.description,
+          category: data.categoryId,
+
+          ...(variantsToUpdate.length && { variantsToUpdate }),
+          ...(variantsToAdd.length && { variantsToAdd }),
+        });
+
+        toast.success('Producto actualizado correctamente');
+      } else {
+        await createProduct({
+          ...data,
+          status: 'active',
+        });
+
+        toast.success('Producto creado correctamente');
+      }
+
+      router.replace('/admin/products');
+      router.refresh();
+
+    } catch (error: any) {
+      console.error(error);
+      toast.error(error.message ?? 'Error al guardar producto');
+    }
   };
 
-  const updateVariant = (
-    index: number,
-    field: keyof VariantForm,
-    value: any
-  ) => {
-    setVariants(prev =>
-      prev.map((v, i) =>
-        i === index ? { ...v, [field]: value } : v
-      )
-    );
-  };
 
-  const setDefaultVariant = (index: number) => {
-    setVariants(prev =>
-      prev.map((v, i) => ({
-        ...v,
-        isDefault: i === index,
-      }))
-    );
-  };
 
+  /* ===================== */
+  /* Render                */
+  /* ===================== */
   return (
-    <form className="space-y-8">
+    <FormProvider {...methods}>
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
 
-      {/* ===================== */}
-      {/* Información básica */}
-      {/* ===================== */}
-      <section className="space-y-4">
+        <ProductBasicInfo
+          register={register}
+          errors={errors}
+          categories={categories}
+          isSubmitting={isSubmitting}
+        />
 
-        <h2 className="text-lg font-semibold">
-          Información del producto
-        </h2>
+        <ProductVariants
+          control={control}
+          fields={fields}
+          append={append}
+          isSubmitting={isSubmitting}
+        />
 
-        {/* Nombre */}
-        <div className="space-y-1">
-          <label className="text-sm font-medium text-slate-700">
-            Nombre
-          </label>
-          <input
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-            placeholder="Samsung Galaxy S27"
-          />
-        </div>
-
-        {/* Descripción */}
-        <div className="space-y-1">
-          <label className="text-sm font-medium text-slate-700">
-            Descripción
-          </label>
-          <textarea
-            rows={3}
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-            placeholder="Smartphone gama alta Samsung"
-          />
-        </div>
-
-        {/* Categoría */}
-        <div className="space-y-1">
-          <label className="text-sm font-medium text-slate-700">
-            Categoría
-          </label>
-          <select className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
-            <option value="">Seleccionar categoría</option>
-            {/* map categorías */}
-          </select>
-        </div>
-
-        {/* Estado */}
-        <div className="space-y-1">
-          <label className="text-sm font-medium text-slate-700">
-            Estado
-          </label>
-          <select className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm">
-            <option value="active">Activo</option>
-            <option value="inactive">Inactivo</option>
-          </select>
-        </div>
-
-      </section>
-
-      <div className="border-t pt-6" />
-
-      {/* ===================== */}
-      {/* Variantes */}
-      {/* ===================== */}
-      <section className="space-y-4">
-
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold">
-            Variantes
-          </h2>
+        <div className="flex gap-2 pt-4">
+          <button
+            type="submit"
+            disabled={isSubmitting}
+            className="px-4 py-2 rounded-xl bg-slate-900 text-white disabled:opacity-50"
+          >
+            {isSubmitting
+              ? 'Guardando...'
+              : isEdit
+                ? 'Actualizar producto'
+                : 'Crear producto'}
+          </button>
 
           <button
             type="button"
-            onClick={addVariant}
-            className="text-sm underline text-slate-700"
+            disabled={isSubmitting}
+            onClick={() => router.push('/admin/products')}
+            className="px-4 py-2 rounded-xl border border-slate-300"
           >
-            + Agregar variante
+            Cancelar
           </button>
         </div>
 
-        {variants.map((variant, index) => (
-          <div
-            key={index}
-            className="rounded-xl border border-slate-200 p-5 space-y-4 bg-slate-50"
-          >
-
-            <div className="flex items-center justify-between">
-              <h3 className="font-medium">
-                Variante #{index + 1}
-              </h3>
-
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="radio"
-                  checked={variant.isDefault}
-                  onChange={() => setDefaultVariant(index)}
-                />
-                Default
-              </label>
-            </div>
-
-            {/* SKU */}
-            <div className="space-y-1">
-              <label className="text-sm font-medium text-slate-700">
-                SKU
-              </label>
-              <input
-                value={variant.sku}
-                onChange={e =>
-                  updateVariant(index, 'sku', e.target.value)
-                }
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                placeholder="S27-128"
-              />
-            </div>
-
-            {/* Precio / Stock */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-slate-700">
-                  Precio
-                </label>
-                <input
-                  type="number"
-                  value={variant.price}
-                  onChange={e =>
-                    updateVariant(index, 'price', Number(e.target.value))
-                  }
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-sm font-medium text-slate-700">
-                  Stock
-                </label>
-                <input
-                  type="number"
-                  value={variant.stock}
-                  onChange={e =>
-                    updateVariant(index, 'stock', Number(e.target.value))
-                  }
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"
-                />
-              </div>
-            </div>
-
-            {/* Imágenes */}
-            <VariantImagesUploader
-              images={variant.images}
-              onChange={imgs =>
-                updateVariant(index, 'images', imgs)
-              }
-            />
-
-          </div>
-        ))}
-
-      </section>
-
-      {/* ===================== */}
-      {/* Actions */}
-      {/* ===================== */}
-      <div className="flex items-center gap-2 pt-4">
-
-        <button
-          type="submit"
-          className="px-4 py-2 rounded-xl bg-slate-900 text-white hover:bg-slate-800"
-        >
-          Crear producto
-        </button>
-
-        <button
-          type="button"
-          className="px-4 py-2 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100"
-        >
-          Cancelar
-        </button>
-
-      </div>
-
-    </form>
+      </form>
+    </FormProvider>
   );
 }

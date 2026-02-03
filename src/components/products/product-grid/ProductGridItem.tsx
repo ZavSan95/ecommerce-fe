@@ -85,39 +85,44 @@ export const ProductGridItem = ({
 
       {/* Imagen */}
       <Link href={`/product/${variant.sku}`}>
-        <Image
-          src={displayImage}
-          alt={product.name}
-          width={500}
-          height={500}
-          className="w-full h-auto object-cover"
-          onMouseEnter={() =>
-            secondaryImage && setDisplayImage(secondaryImage)
-          }
-          onMouseLeave={() => setDisplayImage(primaryImage)}
-        />
+        <div className="relative w-full aspect-square overflow-hidden">
+          <Image
+            src={displayImage}
+            alt={product.name}
+            fill
+            sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
+            className="object-cover transition-transform duration-300 group-hover:scale-105"
+            onMouseEnter={() =>
+              secondaryImage && setDisplayImage(secondaryImage)
+            }
+            onMouseLeave={() => setDisplayImage(primaryImage)}
+          />
+        </div>
       </Link>
 
       {/* Overlay acciones */}
-      <div className="
-        absolute inset-0
-        flex items-end justify-center
-        bg-black/0
-        group-hover:bg-black/10
-        transition
-        pointer-events-none
-      ">
-        <div className="
-          mb-4 flex gap-3
-          opacity-0 translate-y-2
-          group-hover:opacity-100 group-hover:translate-y-0
+      <div
+        className="
+          absolute inset-0
+          flex items-end justify-center
+          bg-black/0
+          group-hover:bg-black/10
           transition
-          pointer-events-auto
-        ">
+          pointer-events-none
+        "
+      >
+        <div
+          className="
+            mb-4 flex gap-3
+            opacity-0 translate-y-2
+            group-hover:opacity-100 group-hover:translate-y-0
+            transition
+            pointer-events-auto
+          "
+        >
           <button
             onClick={handleAddToCart}
             className="p-3 rounded-full bg-white shadow hover:bg-slate-100"
-            title="Agregar al carrito"
           >
             <FiShoppingCart size={18} />
           </button>
@@ -132,7 +137,6 @@ export const ProductGridItem = ({
                 : 'bg-white hover:bg-slate-100'}
               ${loading ? 'opacity-50 cursor-not-allowed' : ''}
             `}
-            title="Favorito"
           >
             <FiHeart size={18} />
           </button>
@@ -153,5 +157,6 @@ export const ProductGridItem = ({
         </span>
       </div>
     </div>
+
   );
 };

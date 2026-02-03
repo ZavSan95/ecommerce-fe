@@ -9,6 +9,22 @@ type FetchProductsParams = {
   sort?: string;
 };
 
+export interface BackendVariant {
+  sku: string;
+  price: number;
+  stock: number;
+  images: string[];
+  isDefault: boolean;
+}
+
+export interface BackendProduct {
+  name: string;
+  description?: string;
+  category: string;
+  variants: BackendVariant[];
+}
+
+
 export async function getProducts(
   params: FetchProductsParams = {}
 ): Promise<PaginatedResponse<Product>> {
@@ -40,4 +56,86 @@ export async function getProducts(
     };
   }
 }
+
+export async function createProduct(payload: Partial<Product>){
+  
+  const res = await fetch(endpoints.products, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    credentials: 'include',
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    throw new Error('Error al crear producto');
+  }
+
+  return res.json();
+}
+
+export async function getProductById(id: string):Promise<BackendProduct>{
+  const res = await fetch(endpoints.productById(id), {
+    method: 'GET',
+    credentials: 'include',
+    cache: 'no-store', 
+    headers: { 'Cache-Control': 'no-cache' },
+  });
+
+  if (!res.ok) {
+    throw new Error('Error al actualizar producto');
+  }
+
+  return res.json();
+}
+
+export async function updateProduct(id: string, payload: any) {
+  const res = await fetch(endpoints.uploadProducts(id), {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify(payload),
+  });
+
+  if (!res.ok) {
+    throw new Error('Error al actualizar producto');
+  }
+
+  return res.json();
+}
+
+export async function deleteProductImage(filename: string) {
+  const res = await fetch(
+    endpoints.deleteProductImages(filename),
+    {
+      method: 'DELETE',
+      credentials: 'include',
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error('Error al eliminar imagen');
+  }
+
+  return res.json();
+}
+
+export async function deleteProduct(id: string) {
+  const res = await fetch(
+    endpoints.deleteProducts(id),
+    {
+      method: 'DELETE',
+      credentials: 'include',
+    }
+  );
+
+  if (!res.ok) {
+    throw new Error('Error al eliminar producto');
+  }
+
+  return res.json();
+}
+
+
 

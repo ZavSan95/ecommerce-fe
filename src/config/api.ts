@@ -10,6 +10,9 @@ export const endpoints = {
   products: `${API_URL}/catalog/products`,
   productsByCategory: (slug: string) => `${API_URL}/catalog/products/category/${slug}`,
   productBySlug: (slug: string) => `${API_URL}/catalog/products/slug/${slug}`,
+  productById: (id: string) => `${API_URL}/catalog/products/id/${id}`,
+  uploadProducts: (id: string) =>  `${API_URL}/catalog/products/${id}`,
+  deleteProducts: (id: string) => `${API_URL}/catalog/products/${id}`,
 
   categories: `${API_URL}/categories`,
   categoryById: (id: string) => `${API_URL}/categories/${id}`,
@@ -24,6 +27,9 @@ export const endpoints = {
 
   favorites: () => `${API_URL}/favorites`,
   favoriteById: (id: string) => `${API_URL}/favorites/${id}`,
+
+  uploadImages: (url: string) => `${API_URL}/uploads/${url}`,
+  deleteProductImages: (filename: string) => `${API_URL}/uploads/products/${filename}`,
 
 
 };

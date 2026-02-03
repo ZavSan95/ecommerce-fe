@@ -1,16 +1,21 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 import { AdminTable } from '@/components/admin/AdminTable';
 import { TableActions } from '@/components/admin/TableActions';
 import { Pagination } from '@/components/ui/pagination/Pagination';
+import { ConfirmDialog } from '@/components';
 
-import { getProducts } from '@/services/products.service';
+import { getProductById, getProducts } from '@/services/products.service';
+import { deleteProductWithImages } from '@/hooks/deleteProductWithImages';
+
 import { PaginationMeta } from '@/interfaces/pagination.interface';
 import { ProductRow } from '@/interfaces/product-row.interface';
 import { PopulatedCategory, Product } from '@/interfaces';
 
+import toast from 'react-hot-toast';
 
 function isPopulatedCategory(
   category: Product['categoryId']
@@ -19,38 +24,46 @@ function isPopulatedCategory(
 }
 
 export default function ProductsAdminPage() {
+  const router = useRouter();
 
   const [rows, setRows] = useState<ProductRow[]>([]);
   const [meta, setMeta] = useState<PaginationMeta | null>(null);
   const [page, setPage] = useState(1);
+  const [isDeleting, setIsDeleting] = useState(false);
 
+
+  const [deleteTarget, setDeleteTarget] =
+    useState<ProductRow | null>(null);
+
+  /* ===================== */
+  /* Cargar productos      */
+  /* ===================== */
   useEffect(() => {
     getProducts({ page, limit: 10 })
       .then(res => {
+        const mappedRows: ProductRow[] = res.data.map(
+          (product: Product) => {
+            const defaultVariant =
+              product.variants.find(v => v.isDefault) ??
+              product.variants[0];
 
-        console.log(res);
+            const totalStock = product.variants.reduce(
+              (acc, v) => acc + v.stock,
+              0
+            );
 
-      const mappedRows: ProductRow[] = res.data.map((product: Product) => {
-
-        const defaultVariant =
-          product.variants.find(v => v.isDefault) ?? product.variants[0];
-
-        const totalStock = product.variants.reduce(
-          (acc, v) => acc + v.stock,
-          0
+            return {
+              id: product._id,
+              name: product.name,
+              category: isPopulatedCategory(product.categoryId)
+                ? product.categoryId.name
+                : '—',
+              price: defaultVariant?.price ?? 0,
+              stock: totalStock,
+              status: product.status,
+            };
+          }
         );
-
-        return {
-          id: product._id,
-          name: product.name,
-          category: isPopulatedCategory(product.categoryId)
-            ? product.categoryId.name
-            : '—',
-          price: defaultVariant?.price ?? 0,
-          stock: totalStock,
-          status: product.status,
-        };
-      });
 
         setRows(mappedRows);
         setMeta(res.meta);
@@ -59,6 +72,43 @@ export default function ProductsAdminPage() {
         console.error('Error cargando productos', err);
       });
   }, [page]);
+
+  /* ===================== */
+  /* Confirmar delete      */
+  /* ===================== */
+  const handleConfirmDelete = async () => {
+    if (!deleteTarget || isDeleting) return;
+
+    try {
+      setIsDeleting(true);
+
+      const product = await getProductById(deleteTarget.id);
+
+      await deleteProductWithImages({
+        id: deleteTarget.id,
+        variants: product.variants,
+      });
+
+      toast.success('Producto eliminado correctamente');
+
+      // 🔽 actualizar tabla local (ver problema 2)
+      setRows(prev => prev.filter(r => r.id !== deleteTarget.id));
+      setMeta(prev =>
+        prev
+          ? { ...prev, totalItems: prev.totalItems - 1 }
+          : prev
+      );
+
+      setDeleteTarget(null);
+
+    } catch (error) {
+      console.error(error);
+      toast.error('No se pudo eliminar el producto');
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
 
   return (
     <div className="space-y-4">
@@ -100,8 +150,8 @@ export default function ProductsAdminPage() {
         data={rows}
         renderActions={row => (
           <TableActions
-            editHref={`/admin/products/${row.id}/edit`}
-            onDelete={() => alert(`Eliminar ${row.name}`)}
+            editHref={`/admin/products/edit/${row.id}`}
+            onDelete={() => setDeleteTarget(row)}
           />
         )}
       />
@@ -114,6 +164,21 @@ export default function ProductsAdminPage() {
           onChange={setPage}
         />
       )}
+
+      {/* Modal confirmación */}
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Eliminar producto"
+        description={
+          deleteTarget
+            ? `¿Seguro que querés eliminar el producto "${deleteTarget.name}"?`
+            : ''
+        }
+        confirmText="Eliminar"
+        cancelText="Cancelar"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </div>
   );
 }
