@@ -32,23 +32,23 @@ export default function CategoriesAdminPage() {
 
   useEffect(() => {
     fetchCategories({ page, limit: 10 })
-      .then(res => {
-        const mappedRows: CategoryRow[] = res.data.map(
-          (cat: Category) => ({
-            id: cat._id,
-            name: cat.name,
-            slug: cat.slug,
-            status: cat.status,
-          })
-        );
+        .then(res => {
+          const mappedRows: CategoryRow[] = res.data.map(
+            (cat: Category) => ({
+              id: cat._id,
+              name: cat.name,
+              slug: cat.slug,
+              status: cat.status,
+            })
+          );
 
-        setRows(mappedRows);
-        setMeta(res.meta);
-      })
-      .catch(err => {
-        console.error('Error cargando categorías', err);
-        toast.error('Error cargando categorías');
-      });
+          setRows(mappedRows);
+          setMeta(res.meta);
+        })
+        .catch(err => {
+          console.error('Error cargando categorías', err);
+          toast.error('Error cargando categorías');
+        });
   }, [page]);
 
   const handleConfirmDelete = async () => {

@@ -17,6 +17,7 @@ import { Category } from '@/interfaces/categories.interface';
 import { ProductBasicInfo } from './ProductBasicInfo';
 import { ProductVariants } from './ProductVariants';
 import uploadImages from '@/services/upload.service';
+import { generateSku } from '@/utils/slugify';
 
 
 interface Props {
@@ -63,7 +64,7 @@ export function ProductForm({
     reset
   } = methods;
 
-  const { fields, append } = useFieldArray({
+  const { fields, append, remove } = useFieldArray({
     control,
     name: 'variants',
   });
@@ -92,13 +93,44 @@ export function ProductForm({
   useEffect(() => {
     console.log('isSubmitting:', isSubmitting);
   }, [isSubmitting]);
+
   
+  /* ===================== */
+  /* SKU            */
+  /* ===================== */
+  const name = methods.watch('name');
+  const variants = methods.watch('variants');
+
+  useEffect(() => {
+    if (!name) return;
+
+    variants.forEach((variant, index) => {
+      
+      if (isEdit && !variant.isNew) return;
+
+      
+      if (variant.isNew || !variant.sku) {
+        const sku = generateSku(name, index);
+        setValue(`variants.${index}.sku`, sku, {
+          shouldDirty: true,
+        });
+      }
+    });
+  }, [name, variants.length, isEdit]);
+
+  
+
 
   /* ===================== */
   /* Submit                */
   /* ===================== */
   const onSubmit = async (data: ProductFormData) => {
     try {
+      /* ========================= */
+      /* Procesar imágenes         */
+      /* ========================= */
+      const processedVariants = [];
+
       for (const variant of data.variants) {
         const hasExistingImages =
           Array.isArray(variant.images) && variant.images.length > 0;
@@ -114,62 +146,54 @@ export function ProductForm({
           );
         }
 
-        /* ========================= */
         /* 🔴 Borrar imágenes marcadas */
-        /* ========================= */
         if (variant.imagesToRemove?.length) {
           for (const img of variant.imagesToRemove) {
             const filename = img.split('/').pop();
-            if (filename) await deleteProductImage(filename);
+            if (filename) {
+              await deleteProductImage(filename);
+            }
           }
         }
 
-        /* ========================= */
-        /* 🔵 Subir nuevas imágenes   */
-        /* ========================= */
+        /* 🔵 Subir nuevas imágenes */
+        let images = variant.images ?? [];
+
         if (hasNewImages) {
           const uploaded = await uploadImages(
             'products',
             variant.imageFiles!
           );
 
-          variant.images = [
-            ...(variant.images ?? []),
+          images = [
+            ...images,
             ...uploaded.map(u => u.key),
           ];
         }
 
-        /* ========================= */
-        /* 🧹 Limpieza frontend       */
-        /* ========================= */
-        delete (variant as any).imageFiles;
-        delete (variant as any).imagesToRemove;
+        /* Guardar variante procesada (sin campos frontend-only) */
+        processedVariants.push({
+          sku: variant.sku,
+          price: variant.price,
+          stock: variant.stock,
+          images,
+          attributes: variant.attributes,
+          isDefault: variant.isDefault,
+          isNew: variant.isNew, // 👈 solo para separar luego
+        });
       }
 
       /* ========================= */
       /* Guardar producto          */
       /* ========================= */
       if (isEdit && productId) {
+        const variantsToUpdate = processedVariants
+          .filter(v => !v.isNew)
+          .map(({ isNew, ...v }) => v);
 
-      const variantsToUpdate = data.variants
-        .filter(v => !v.isNew)
-        .map(v => ({
-          sku: v.sku,
-          price: v.price,
-          stock: v.stock,
-          images: Array.isArray(v.images) ? v.images : [], // ✅ siempre array
-          isDefault: v.isDefault,
-        }));
-
-        const variantsToAdd = data.variants
+        const variantsToAdd = processedVariants
           .filter(v => v.isNew)
-          .map(v => ({
-            sku: v.sku,
-            price: v.price,
-            stock: v.stock,
-            images: v.images,
-            isDefault: v.isDefault,
-          }));
+          .map(({ isNew, ...v }) => v);
 
         await updateProduct(productId, {
           name: data.name,
@@ -183,8 +207,11 @@ export function ProductForm({
         toast.success('Producto actualizado correctamente');
       } else {
         await createProduct({
-          ...data,
+          name: data.name,
+          description: data.description,
+          categoryId: data.categoryId,
           status: 'active',
+          variants: processedVariants.map(({ isNew, ...v }) => v),
         });
 
         toast.success('Producto creado correctamente');
@@ -198,6 +225,7 @@ export function ProductForm({
       toast.error(error.message ?? 'Error al guardar producto');
     }
   };
+
 
 
 
@@ -219,6 +247,7 @@ export function ProductForm({
           control={control}
           fields={fields}
           append={append}
+          remove={remove}     
           isSubmitting={isSubmitting}
         />
 

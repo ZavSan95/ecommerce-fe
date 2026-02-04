@@ -10,6 +10,8 @@ export const variantSchema = z.object({
 
   stock: z.number().int().min(0, 'Stock inválido'),
 
+  attributes: z.record(z.string(), z.string()).optional(),
+
   // 🔵 Backend (persistente)
   images: z.array(z.string()).optional(),
 
@@ -23,6 +25,7 @@ export const variantSchema = z.object({
 
   isNew: z.boolean().optional(),
 });
+
 
 /* ========================= */
 /* Product Schema            */

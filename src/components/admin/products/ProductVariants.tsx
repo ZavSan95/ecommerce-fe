@@ -5,6 +5,7 @@ import {
   UseFieldArrayAppend,
   Control,
 } from 'react-hook-form';
+import toast from 'react-hot-toast';
 import { ProductFormData } from '@/schemas/product.schema';
 import { ProductVariantItem } from './ProductVariantItem';
 
@@ -12,12 +13,14 @@ interface Props {
   control: Control<ProductFormData>;
   fields: FieldArrayWithId<ProductFormData, 'variants', 'id'>[];
   append: UseFieldArrayAppend<ProductFormData, 'variants'>;
+  remove: (index: number) => void;
   isSubmitting: boolean;
 }
 
 export function ProductVariants({
   fields,
   append,
+  remove,
   isSubmitting,
 }: Props) {
   return (
@@ -36,7 +39,7 @@ export function ProductVariants({
               images: [],
               imageFiles: [],
               imagesToRemove: [],
-              isDefault: false,
+              isDefault: fields.length === 0,
               isNew: true,
             })
           }
@@ -51,6 +54,15 @@ export function ProductVariants({
           key={field.id}
           index={index}
           isSubmitting={isSubmitting}
+          isNew={field.isNew}
+          onRemove={() => {
+            if (fields.length === 1) {
+              toast.error('El producto debe tener al menos una variante');
+              return;
+            }
+
+            remove(index);
+          }}
         />
       ))}
     </section>

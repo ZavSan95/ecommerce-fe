@@ -6,6 +6,10 @@ export const endpoints = {
   me: `${API_URL}/auth/me`,
   logout: `${API_URL}/auth/logout`,
   users: `${API_URL}/auth/users`,
+  createUser: `${API_URL}/auth/admin-register`,
+  updateUser: (userId: string) => `${API_URL}/auth/user/${userId}`,
+  getUser: (userId: string) => `${API_URL}/auth/user/${userId}`,
+  toggleUserStatus: (userId: string) => `${API_URL}/auth/user/status/${userId}`,
 
   products: `${API_URL}/catalog/products`,
   productsByCategory: (slug: string) => `${API_URL}/catalog/products/category/${slug}`,
