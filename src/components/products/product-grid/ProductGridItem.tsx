@@ -14,7 +14,7 @@ import { useRouter } from 'next/navigation';
 interface Props {
   product: Product;
   isFavorite: boolean;
-  onToggleFavorite: (
+  onToggleFavorite?: (
     productId: string,
     sku: string,
   ) => Promise<void>;
@@ -50,6 +50,8 @@ export const ProductGridItem = ({
     e.preventDefault();
     e.stopPropagation();
 
+    if (!onToggleFavorite) return; 
+    
     if (loading) return;
 
     if (!isAuthenticated) {
@@ -128,18 +130,24 @@ export const ProductGridItem = ({
           </button>
 
           <button
-            onClick={handleToggleFavorite}
-            disabled={loading}
+            onClick={onToggleFavorite ? handleToggleFavorite : undefined}
+            disabled={!onToggleFavorite || loading}
             className={`
               p-3 rounded-full shadow transition
               ${isFavorite
                 ? 'bg-red-500 text-white'
                 : 'bg-white hover:bg-slate-100'}
+              ${
+                !onToggleFavorite
+                  ? 'opacity-40 cursor-not-allowed'
+                  : ''
+              }
               ${loading ? 'opacity-50 cursor-not-allowed' : ''}
             `}
           >
             <FiHeart size={18} />
           </button>
+
         </div>
       </div>
 

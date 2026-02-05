@@ -7,6 +7,8 @@ import clsx from 'clsx';
 export function Sidebar() {
   const { isCollapsed, isMobileOpen, closeMobile } = useAdminLayout();
 
+
+
   return (
     <aside
       className={clsx(

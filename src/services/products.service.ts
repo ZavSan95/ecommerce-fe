@@ -1,6 +1,7 @@
 import { endpoints } from '@/config/api';
 import { Product } from '@/interfaces';
 import { PaginatedResponse, PaginationMeta } from '@/interfaces/pagination.interface';
+import { ProductDetail } from '@/interfaces/product-detail.interface';
 
 type FetchProductsParams = {
   page?: number;
@@ -55,6 +56,21 @@ export async function getProducts(
       meta: {} as PaginationMeta,
     };
   }
+}
+
+export async function getRelatedProducts(slug: string): Promise<ProductDetail | null>{
+
+  const res = await fetch(endpoints.relatedProducts(slug), {
+    method: 'GET',
+    cache: 'no-store',
+    headers: { 'Cache-Control': 'no-cache' },
+  });
+
+  if (!res.ok) {
+    return null;
+  }
+
+  return res.json();
 }
 
 export async function createProduct(payload: Partial<Product>){

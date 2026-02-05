@@ -5,15 +5,31 @@ import { Order } from '@/interfaces/orders.interface';
 import { PaginatedResponse } from '@/interfaces/pagination.interface';
 
 export async function getMyOrders(): Promise<Order[]> {
-  const res = await fetch(endpoints.my_orders(), {
-    credentials: 'include',
-  });
+  try {
+    const res = await fetch(endpoints.my_orders(), {
+      credentials: 'include',
+    });
 
-  if (!res.ok) {
-    throw new Error('No se pudieron cargar las órdenes');
+    // 🔐 Usuario no autenticado / sesión vencida
+    if (res.status === 401 || res.status === 403) {
+      return [];
+    }
+
+    // ⚠️ Otro error backend
+    if (!res.ok) {
+      console.warn(
+        'Error al cargar órdenes:',
+        res.status,
+        res.statusText,
+      );
+      return [];
+    }
+
+    return res.json();
+  } catch (error) {
+    console.error('Error de red al cargar órdenes', error);
+    return [];
   }
-
-  return res.json();
 }
 
 export interface CreateOrderPayload {

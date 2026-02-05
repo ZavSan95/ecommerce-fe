@@ -17,6 +17,9 @@ export const endpoints = {
   productById: (id: string) => `${API_URL}/catalog/products/id/${id}`,
   uploadProducts: (id: string) =>  `${API_URL}/catalog/products/${id}`,
   deleteProducts: (id: string) => `${API_URL}/catalog/products/${id}`,
+  relatedProducts: (slug: string) => `${API_URL}/catalog/products/related/${slug}`,
+  searchProducts: (query: string) =>
+  `${API_URL}/catalog/products/search?q=${encodeURIComponent(query)}`,
 
   categories: `${API_URL}/categories`,
   categoryById: (id: string) => `${API_URL}/categories/${id}`,

@@ -24,3 +24,8 @@ export interface PopulatedCategory {
   _id: string;
   name: string;
 }
+
+interface ProductWithSuggestions extends Product {
+  relatedType: 'variants' | 'products';
+  related?: Product[];
+}
