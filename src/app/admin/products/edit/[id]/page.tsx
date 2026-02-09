@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { ProductForm } from '@/components/admin/products/ProductForm';
 import { getProductById } from '@/services/products.service';
+import { mapBackendProductToForm } from '@/mappers/product.mapper';
 
 interface Props {
   params: {
@@ -14,6 +15,7 @@ interface Props {
 export default async function EditProductPage({ params }: Props) {
   try {
     const product = await getProductById(params.id);
+    const formDefaults = mapBackendProductToForm(product);
 
     return (
       <div className="space-y-4">
@@ -30,7 +32,7 @@ export default async function EditProductPage({ params }: Props) {
           <ProductForm
             isEdit
             productId={params.id}
-            defaultValues={product}
+            defaultValues={formDefaults}
           />
         </div>
 
