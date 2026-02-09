@@ -1,5 +1,5 @@
 
-export default function ShopLayout( { children }: {
+export default function AuthLayout( { children }: {
   children: React.ReactNode;
 } ) {
   return (

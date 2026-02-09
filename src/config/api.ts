@@ -3,6 +3,7 @@ export const API_URL = process.env.NEXT_PUBLIC_API_URL;
 export const endpoints = {
 
   login: `${API_URL}/auth/login`,
+  regiter: `${API_URL}/auth/register`,
   me: `${API_URL}/auth/me`,
   logout: `${API_URL}/auth/logout`,
   users: `${API_URL}/auth/users`,

@@ -7,6 +7,7 @@ import { Product } from '@/interfaces';
 import { ProductGridItem } from './ProductGridItem';
 import { getMyFavorites, toggleFavorite } from '@/services/favorites.service';
 import { useAppSelector } from '@/store/hooks';
+import { hasAuthCookie } from '@/utils/authCookies';
 
 type FavoriteMap = Record<string, string>;
 
@@ -23,7 +24,7 @@ export const ProductGrid = ({ products }: Props) => {
 
   // 👉 Cargar favoritos SOLO si está autenticado
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!isAuthenticated || !hasAuthCookie()) {
       setFavoritesMap({});
       return;
     }
@@ -49,6 +50,7 @@ export const ProductGrid = ({ products }: Props) => {
 
     fetchFavorites();
   }, [isAuthenticated]);
+
 
   // 👉 Toggle con guard de autenticación
   const handleToggleFavorite = async (

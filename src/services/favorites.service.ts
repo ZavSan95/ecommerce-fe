@@ -31,12 +31,27 @@ export async function getMyFavorites(
     },
   );
 
+  // 🔐 No autenticado → estado válido (favoritos vacíos)
+  if (res.status === 401) {
+    return {
+      data: [],
+      meta: {
+        totalItems: 0,
+        itemsPerPage: limit,
+        currentPage: page,
+        totalPages: 0,
+      },
+    };
+  }
+
+  // ❌ Errores reales
   if (!res.ok) {
     throw new Error('No se pudieron obtener los favoritos');
   }
 
   return res.json();
 }
+
 
 export const toggleFavorite = async (payload: {
   productId: string;

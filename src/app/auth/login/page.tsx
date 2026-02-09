@@ -8,6 +8,7 @@ import { titleFont } from '@/config/fonts';
 import { loginRequest, authMe } from '@/services/auth.service';
 import { useAppDispatch } from '@/store/hooks';
 import { setUser } from '@/store/auth/authSlice';
+import { hasAuthCookie } from '@/utils/authCookies';
 
 export default function LoginPage() {
 
@@ -25,17 +26,21 @@ export default function LoginPage() {
 
   // 🔐 Chequeo de sesión al entrar
   useEffect(() => {
+    if (!hasAuthCookie()) {
+      setCheckingSession(false);
+      return;
+    }
+
     authMe()
       .then(({ user }) => {
-        // Ya hay sesión → rehidratamos y redirigimos
         dispatch(setUser(user));
         router.replace(redirectTo);
       })
       .catch(() => {
-        // No hay sesión → puede ver el login
         setCheckingSession(false);
       });
   }, [dispatch, router, redirectTo]);
+
 
   // ⏳ Mientras chequeamos sesión, no renderizamos nada
   if (checkingSession) {
