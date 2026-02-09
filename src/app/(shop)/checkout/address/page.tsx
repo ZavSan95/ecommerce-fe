@@ -146,6 +146,21 @@ export default function AddressPage() {
             )}
           </div>
 
+          {/* Provincia / Estado */}
+          <div className="flex flex-col mb-2">
+            <span>Provincia</span>
+            <input
+              {...register('state')}
+              autoComplete="address-level1"
+              className={inputClass(!!errors.state)}
+            />
+            {errors.state && (
+              <span className="text-sm text-red-500">
+                {errors.state.message}
+              </span>
+            )}
+          </div>
+
           {/* País */}
           <div className="flex flex-col mb-2">
             <span>País</span>

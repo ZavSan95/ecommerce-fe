@@ -7,8 +7,10 @@ export const addressSchema = z.object({
   address2: z.string().optional(),
   postalCode: z.string().min(4, 'Código postal inválido'),
   city: z.string().min(2, 'Ciudad obligatoria'),
+  state: z.string().min(2, 'Provincia obligatoria'),
   country: z.string().min(1, 'Seleccioná un país'),
   phone: z.string().min(8, 'Teléfono inválido'),
 });
+
 
 export type AddressFormData = z.infer<typeof addressSchema>;
