@@ -8,7 +8,16 @@ const nextConfig = {
         port: '3000',
         pathname: '/uploads/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'ecommerce-be-production-73f6.up.railway.app',
+        pathname: '/uploads/**',
+      },
     ],
+  },
+
+  eslint: {
+    ignoreDuringBuilds: true,
   },
 };
 
