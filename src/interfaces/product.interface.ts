@@ -1,3 +1,5 @@
+import { FileWithPreview } from "./file-with-preview";
+
 export interface ProductVariant {
   sku: string;
   price: number;
@@ -6,6 +8,18 @@ export interface ProductVariant {
   attributes?: Record<string, string>;
   isDefault?: boolean;
 }
+
+export interface ProductVariantForm {
+  sku: string;
+  price: number;
+  stock: number;
+  images: string[];
+  imageFiles?: FileWithPreview[];
+  imagesToRemove?: string[];
+  isDefault?: boolean;
+  isNew?: boolean;
+}
+
 
 export interface Product {
   _id: string;

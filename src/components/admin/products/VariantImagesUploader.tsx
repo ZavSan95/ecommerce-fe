@@ -4,11 +4,15 @@ import { useEffect } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { IoImageOutline, IoCloseOutline } from 'react-icons/io5';
 import { ProductFormData } from '@/schemas/product.schema';
+import { getProductImageUrl } from '@/utils/image';
+import { FileWithPreview } from '@/interfaces/file-with-preview';
+
 
 interface Props {
   name: `variants.${number}.imageFiles`;
   imagesName: `variants.${number}.images`;
 }
+
 
 export function VariantImagesUploader({ name, imagesName }: Props) {
   const { setValue, watch } = useFormContext<ProductFormData>();
@@ -21,23 +25,7 @@ export function VariantImagesUploader({ name, imagesName }: Props) {
   /* ========================= */
   /* New files (frontend)      */
   /* ========================= */
-  const filesRaw = watch(name);
-
-  const files: File[] = Array.isArray(filesRaw)
-    ? filesRaw.filter(f => f instanceof File)
-    : [];
-
-  const previews = files.map(file => ({
-    id: file.name + file.size,
-    url: URL.createObjectURL(file),
-  }));
-
-  /* ========================= */
-  /* Cleanup previews          */
-  /* ========================= */
-  useEffect(() => {
-    return () => previews.forEach(p => URL.revokeObjectURL(p.url));
-  }, [previews]);
+  const files: FileWithPreview[] = watch(name) ?? [];
 
   /* ========================= */
   /* Handlers                  */
@@ -45,17 +33,48 @@ export function VariantImagesUploader({ name, imagesName }: Props) {
   const handleFiles = (list: FileList | null) => {
     if (!list) return;
 
-    setValue(name, [...files, ...Array.from(list)], {
-      shouldDirty: true,
-    });
+      const newFiles: FileWithPreview[] = Array.from(list).map(
+        file => ({
+          file,
+          preview: URL.createObjectURL(file),
+        }),
+      );
+
+      setValue(name, [...files, ...newFiles], {
+        shouldDirty: true,
+      });
   };
+
+  const removeFile = (preview: string) => {
+    const file = files.find(f => f.preview === preview);
+    if (file) {
+      URL.revokeObjectURL(file.preview);
+    }
+
+    setValue(
+      name,
+      files.filter(f => f.preview !== preview),
+      { shouldDirty: true },
+    );
+  };
+
+  /* ========================= */
+  /* Cleanup on unmount        */
+  /* ========================= */
+  useEffect(() => {
+    return () => {
+      files.forEach(f => URL.revokeObjectURL(f.preview));
+    };
+  }, []);
 
   /* ========================= */
   /* Render                    */
   /* ========================= */
   return (
     <div className="space-y-3">
-      <label className="block text-sm font-medium">Imágenes</label>
+      <label className="block text-sm font-medium">
+        Imágenes
+      </label>
 
       {/* Upload */}
       <label className="flex items-center gap-2 px-3 py-2 border border-dashed rounded-lg cursor-pointer">
@@ -86,7 +105,7 @@ export function VariantImagesUploader({ name, imagesName }: Props) {
               className="relative aspect-square border rounded overflow-hidden"
             >
               <img
-                src={`${process.env.NEXT_PUBLIC_GATEWAY_URL}/uploads/${img}?v=${Date.now()}`}
+                src={getProductImageUrl(img)}
                 className="object-cover w-full h-full"
                 alt="Imagen del producto"
               />
@@ -94,20 +113,19 @@ export function VariantImagesUploader({ name, imagesName }: Props) {
               <button
                 type="button"
                 onClick={() => {
-                  // 1️⃣ quitar visualmente
                   setValue(
                     imagesName,
                     images.filter(i => i !== img),
-                    { shouldDirty: true }
+                    { shouldDirty: true },
                   );
 
-                  // 2️⃣ marcar para borrar en submit
-                  const toRemove = watch(imagesToRemoveName) ?? [];
+                  const toRemove =
+                    watch(imagesToRemoveName) ?? [];
 
                   setValue(
                     imagesToRemoveName,
                     [...toRemove, img],
-                    { shouldDirty: true }
+                    { shouldDirty: true },
                   );
                 }}
                 className="absolute top-1 right-1 bg-black/60 text-white p-1 rounded-full"
@@ -121,26 +139,20 @@ export function VariantImagesUploader({ name, imagesName }: Props) {
         {/* ========================= */}
         {/* New previews              */}
         {/* ========================= */}
-        {previews.map(p => (
+        {files.map(f => (
           <div
-            key={p.id}
+            key={f.preview}
             className="relative aspect-square border rounded overflow-hidden"
           >
             <img
-              src={p.url}
+              src={f.preview}
               className="object-cover w-full h-full"
               alt="Preview"
             />
 
             <button
               type="button"
-              onClick={() =>
-                setValue(
-                  name,
-                  files.filter(f => f.name + f.size !== p.id),
-                  { shouldDirty: true }
-                )
-              }
+              onClick={() => removeFile(f.preview)}
               className="absolute top-1 right-1 bg-black/60 text-white p-1 rounded-full"
             >
               <IoCloseOutline size={14} />

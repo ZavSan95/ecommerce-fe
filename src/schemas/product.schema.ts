@@ -16,7 +16,15 @@ export const variantSchema = z.object({
   images: z.array(z.string()).optional(),
 
   // 🔵 Frontend only (subida)
-  imageFiles: z.array(z.instanceof(File)).optional(),
+  imageFiles: z
+    .array(
+      z.object({
+        file: z.any(),
+        preview: z.string(),
+      }),
+    )
+    .optional(),
+
 
   // 🔴 Frontend only (borrado diferido)
   imagesToRemove: z.array(z.string()).optional(),

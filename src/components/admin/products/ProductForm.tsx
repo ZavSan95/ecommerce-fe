@@ -16,8 +16,10 @@ import { fetchCategories } from '@/services/categories.service';
 import { Category } from '@/interfaces/categories.interface';
 import { ProductBasicInfo } from './ProductBasicInfo';
 import { ProductVariants } from './ProductVariants';
-import uploadImages from '@/services/upload.service';
+
 import { generateSku } from '@/utils/slugify';
+import { getPresignedUploads, uploadFileToWasabi } from '@/services/upload.service';
+
 
 
 interface Props {
@@ -168,14 +170,20 @@ export function ProductForm({
         let images = variant.images ?? [];
 
         if (hasNewImages) {
-          const uploaded = await uploadImages(
-            'products',
-            variant.imageFiles!
+          const presigned = await getPresignedUploads(
+            variant.imageFiles!.length
           );
+
+          for (let i = 0; i < presigned.length; i++) {
+            await uploadFileToWasabi(
+              presigned[i].uploadUrl,
+              variant.imageFiles![i].file
+            );
+          }
 
           images = [
             ...images,
-            ...uploaded.map(u => u.key),
+            ...presigned.map(p => p.key),
           ];
         }
 

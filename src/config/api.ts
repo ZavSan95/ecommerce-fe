@@ -39,5 +39,7 @@ export const endpoints = {
   uploadImages: (url: string) => `${API_URL}/uploads/${url}`,
   deleteProductImages: (filename: string) => `${API_URL}/uploads/products/${filename}`,
 
+  presignedUploads: () => `${API_URL}/uploads/products/presign`,
+
 
 };

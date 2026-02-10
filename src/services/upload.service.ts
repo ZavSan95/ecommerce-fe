@@ -1,32 +1,48 @@
 import { endpoints } from '@/config/api';
 
-export interface UploadedImage {
+export interface PresignedUpload {
   key: string;
-  url: string;
+  uploadUrl: string;
+  viewUrl: string;
 }
 
-export default async function uploadImages(
-  url: string,
-  files: File[]
-): Promise<UploadedImage[]> {
-
-  const formData = new FormData();
-
-  files.forEach(file => {
-    formData.append('images', file);
-  });
-
-  const res = await fetch(endpoints.uploadImages(url), {
+/**
+ * Pide al backend URLs firmadas para subir imágenes a Wasabi
+ */
+export async function getPresignedUploads(
+  count: number
+): Promise<PresignedUpload[]> {
+  const res = await fetch(endpoints.presignedUploads(), {
     method: 'POST',
-    body: formData,
+    headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
+    body: JSON.stringify({ count }),
   });
 
   if (!res.ok) {
-    throw new Error('Error al subir imágenes');
+    throw new Error('Error generando URLs de subida');
   }
 
   const data = await res.json();
+  return data.uploads as PresignedUpload[];
+}
 
-  return data.files as UploadedImage[];
+/**
+ * Sube un archivo directamente a Wasabi usando PUT
+ */
+export async function uploadFileToWasabi(
+  uploadUrl: string,
+  file: File
+): Promise<void> {
+  const res = await fetch(uploadUrl, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'image/webp',
+    },
+    body: file,
+  });
+
+  if (!res.ok) {
+    throw new Error('Error subiendo archivo a Wasabi');
+  }
 }

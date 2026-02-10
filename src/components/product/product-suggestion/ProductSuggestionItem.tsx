@@ -2,7 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 
 import { Product } from '@/interfaces';
-import { getProductImageUrl } from '@/utils/assets';
+import { getProductImageUrl } from '@/utils/image';
 
 interface Props {
   product: Product;
@@ -13,9 +13,7 @@ export const ProductSuggestionItem = ({ product }: Props) => {
     product.variants.find(v => v.isDefault) ??
     product.variants[0];
 
-  const image = variant.images?.[0]
-    ? getProductImageUrl(variant.images[0])
-    : '/placeholder.webp';
+  const imageKey = variant.images?.[0];
 
   return (
     <Link
@@ -34,7 +32,11 @@ export const ProductSuggestionItem = ({ product }: Props) => {
       {/* Imagen */}
       <div className="relative w-24 h-24 flex-shrink-0 rounded-xl overflow-hidden bg-slate-100">
         <Image
-          src={image}
+          src={
+            imageKey
+              ? getProductImageUrl(imageKey)
+              : '/placeholder.webp'
+          }
           alt={product.name}
           fill
           className="object-cover transition-transform duration-300 group-hover:scale-105"

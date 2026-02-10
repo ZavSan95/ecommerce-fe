@@ -4,7 +4,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import { Product } from '@/interfaces';
-import { getProductImageUrl } from '@/utils/assets';
+import { getProductImageUrl } from '@/utils/image';
 import { FiHeart, FiShoppingCart } from 'react-icons/fi';
 import { useAddToCart } from '@/hooks/useAddToCart';
 import toast from 'react-hot-toast';
