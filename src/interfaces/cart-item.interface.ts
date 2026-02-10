@@ -1,7 +1,8 @@
+export type ProductImageKey = string;
+
 export interface CartItem {
   productId: string;
   productName: string;
-
   variantSku: string;
 
   price: number;
@@ -9,5 +10,5 @@ export interface CartItem {
   stock: number;
 
   attributes?: Record<string, string>;
-  image?: string;
+  image?: ProductImageKey; // 👈 semántico
 }

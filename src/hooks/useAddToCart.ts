@@ -4,7 +4,6 @@ import { useAppDispatch } from '@/store/hooks';
 import { addItem } from '@/store/cart/cartSlice';
 import { Product, ProductVariant } from '@/interfaces/product.interface';
 import { CartItem } from '@/interfaces/cart-item.interface';
-import { getProductImageUrl } from '@/utils/assets';
 
 export function useAddToCart() {
   const dispatch = useAppDispatch();
@@ -27,9 +26,9 @@ export function useAddToCart() {
       stock: variant.stock,
 
       attributes: variant.attributes,
-      image: variant.images?.[0]
-        ? getProductImageUrl(variant.images[0])
-        : undefined,
+
+      // ✅ SOLO la key
+      image: variant.images?.[0], // "products/uuid.webp"
     };
 
     dispatch(addItem(item));
