@@ -4,14 +4,12 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import toast from 'react-hot-toast';
 import { IoHeartDislikeOutline } from 'react-icons/io5';
+import Link from 'next/link';
 
 import { useAuthGuard } from '@/hooks/useAuthGuard';
-import { getMyFavorites, toggleFavorite  } from '@/services/favorites.service';
-
-
+import { getMyFavorites, toggleFavorite } from '@/services/favorites.service';
 import { FavoriteItem } from '@/interfaces/favorite-row.interface';
 import normalizeImage from '@/utils/normalizeImage';
-import Link from 'next/link';
 
 export default function FavoritesPage() {
   const { isAuthenticated } = useAuthGuard('/favorites', 600);
@@ -44,13 +42,15 @@ export default function FavoritesPage() {
 
   const handleRemove = async (productId: string, sku: string) => {
     try {
-      const res = await toggleFavorite({productId, sku});
+      const res = await toggleFavorite({ productId, sku });
 
-      if(!res.isFavorite){
-        setItems(prev => prev.filter(item => item.productId !== productId));
+      if (!res.isFavorite) {
+        setItems(prev =>
+          prev.filter(item => item.productId !== productId),
+        );
         toast.success('Eliminado de favoritos 💔');
       }
-    } catch (error) {
+    } catch {
       toast.error('No se pudo eliminar el favorito');
     }
   };
@@ -77,7 +77,6 @@ export default function FavoritesPage() {
       {/* Empty */}
       {!loading && items.length === 0 && (
         <div className="flex flex-col items-center justify-center py-24 text-gray-500 gap-6">
-          
           <Image
             src="/imgs/empty-favorites.webp"
             alt="Sin favoritos"
@@ -94,72 +93,59 @@ export default function FavoritesPage() {
               Todavía no agregaste productos a favoritos
             </p>
           </div>
-
         </div>
       )}
-
 
       {/* Grid */}
       <div
         className="
-          grid
-          grid-cols-1
-          sm:grid-cols-2
-          lg:grid-cols-3
-          xl:grid-cols-4
-          gap-6
+          grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6
         "
       >
         {items.map(item => (
           <div
             key={item.id}
             className="
-              bg-white
-              rounded-2xl
-              shadow-sm
-              hover:shadow-md
-              transition
-              overflow-hidden
-              group
+              bg-white rounded-2xl shadow-sm
+              hover:shadow-md transition overflow-hidden group
             "
           >
-          {/* Imagen */}
-          <Link href={`/product/${item.sku}`}>
-            <div className="relative aspect-square bg-gray-100 cursor-pointer">
-              {item.image ? (
-                <Image
-                  src={item.image}
-                  alt={item.name ?? 'Producto'}
-                  fill
+            {/* Imagen */}
+            <Link href={`/product/${item.sku}`}>
+              <div className="relative aspect-square bg-gray-100 cursor-pointer">
+                {item.image ? (
+                  <Image
+                    src={item.image}
+                    alt={item.name ?? 'Producto'}
+                    fill
+                    unoptimized
+                    className="
+                      object-cover group-hover:scale-105
+                      transition-transform
+                    "
+                  />
+                ) : (
+                  <div className="flex items-center justify-center h-full text-sm text-gray-400">
+                    Sin imagen
+                  </div>
+                )}
+
+                {/* Remove */}
+                <button
+                  onClick={e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    handleRemove(item.productId, item.sku);
+                  }}
                   className="
-                    object-cover
-                    group-hover:scale-105
-                    transition-transform
+                    absolute top-3 right-3 p-2 rounded-full
+                    bg-white/90 hover:bg-red-50 text-red-500 transition
                   "
-                />
-              ) : (
-                <div className="flex items-center justify-center h-full text-sm text-gray-400">
-                  Sin imagen
-                </div>
-              )}
-
-              {/* Remove */}
-              <button
-                onClick={(e) => {
-                  e.preventDefault();   // ⛔ evita navegación
-                  e.stopPropagation();  // ⛔ evita bubbling
-                  handleRemove(item.productId, item.sku);
-                }}
-                className="
-                  absolute top-3 right-3 p-2 rounded-full
-                  bg-white/90 hover:bg-red-50 text-red-500 transition
-                "
-              >
-                <IoHeartDislikeOutline size={18} />
-              </button>
-            </div>
-          </Link>
-
+                >
+                  <IoHeartDislikeOutline size={18} />
+                </button>
+              </div>
+            </Link>
 
             {/* Info */}
             <div className="p-4 space-y-1">
