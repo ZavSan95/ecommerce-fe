@@ -21,13 +21,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <ClientOnly>
             <AuthBootstrap>
               <Toaster position="top-left" />
+              {children}
             </AuthBootstrap>
           </ClientOnly>
-
-          {children}
         </ReduxProvider>
 
       </body>
     </html>
   );
 }
+
