@@ -2,7 +2,11 @@
 
 import { useEffect } from 'react';
 import { useAppDispatch } from '@/store/hooks';
-import { setUser, clearAuth } from '@/store/auth/authSlice';
+import {
+  setUser,
+  clearAuth,
+  setInitialized,
+} from '@/store/auth/authSlice';
 import { authMe } from '@/services/auth.service';
 import { hasAuthCookie } from '@/utils/authCookies';
 
@@ -12,6 +16,7 @@ export function AuthBootstrap({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!hasAuthCookie()) {
       dispatch(clearAuth());
+      dispatch(setInitialized());
       return;
     }
 
@@ -21,9 +26,11 @@ export function AuthBootstrap({ children }: { children: React.ReactNode }) {
       })
       .catch(() => {
         dispatch(clearAuth());
+      })
+      .finally(() => {
+        dispatch(setInitialized());
       });
   }, [dispatch]);
-
 
   return <>{children}</>;
 }
