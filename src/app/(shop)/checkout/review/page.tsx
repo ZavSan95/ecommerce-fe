@@ -13,6 +13,7 @@ import { useAppSelector, useAppDispatch } from '@/store/hooks';
 import { createOrder } from '@/services/orders.client';
 import { clearCart } from '@/store/cart/cartSlice';
 import { PaymentProvider } from '@/enum/payments-providers';
+import { getProductImageUrl } from '@/utils/image';
 
 export default function ReviewPage() {
   const router = useRouter();
@@ -114,11 +115,15 @@ export default function ReviewPage() {
                 className="flex gap-4 border-b pb-4"
               >
                 <Image
-                  src={item.image ?? '/placeholder.webp'}
+                  src={
+                    item.image
+                      ? getProductImageUrl(item.image)
+                      : '/placeholder.webp'
+                  }
                   width={80}
                   height={80}
                   alt={item.productName}
-                  className="rounded"
+                  className="rounded object-cover"
                 />
 
                 <div className="flex flex-col">

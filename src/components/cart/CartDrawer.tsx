@@ -9,6 +9,7 @@ import { useAppDispatch, useAppSelector } from '@/store/hooks';
 import { closeCart } from '@/store/ui/uiSlice';
 import { removeItem, updateQuantity } from '@/store/cart/cartSlice';
 import { QuantitySelector } from '../product/quantity-selector/QuantitySelector';
+import { getProductImageUrl } from '@/utils/image';
 
 export const CartDrawer = () => {
   const dispatch = useAppDispatch();
@@ -65,7 +66,11 @@ export const CartDrawer = () => {
                 className="flex gap-4 py-4 border-b last:border-b-0"
               >
                 <Image
-                  src={item.image ?? '/placeholder.webp'}
+                  src={
+                    item.image
+                      ? getProductImageUrl(item.image)
+                      : '/placeholder.webp'
+                  }
                   alt={item.productName}
                   width={80}
                   height={80}

@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import { QuantitySelector, Title } from '@/components';
 import Image from 'next/image';
 import Link from 'next/link';
+import { getProductImageUrl } from '@/utils/image';
 
 export default function CartPage() {
 
@@ -45,7 +46,11 @@ export default function CartPage() {
               >
                 {/* Imagen */}
                 <Image
-                  src={item.image ?? '/placeholder.webp'}
+                  src={
+                    item.image
+                      ? getProductImageUrl(item.image)
+                      : '/placeholder.webp'
+                  }
                   width={120}
                   height={120}
                   alt={item.productName}
