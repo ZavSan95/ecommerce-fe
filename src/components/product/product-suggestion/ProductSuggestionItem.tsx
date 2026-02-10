@@ -28,6 +28,7 @@ export const ProductSuggestionItem = ({ product }: Props) => {
           alt={product.name}
           fill
           className="object-cover transition-transform duration-300 group-hover:scale-105"
+          unoptimized
         />
       </div>
 

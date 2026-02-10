@@ -46,7 +46,7 @@ export const ProductSlideshow = ({
               alt={title}
               fill
               className="object-contain"
-              priority
+              unoptimized
             />
           </SwiperSlide>
         ))}
@@ -68,6 +68,7 @@ export const ProductSlideshow = ({
                 alt={title}
                 fill
                 className="object-contain p-1"
+                unoptimized
               />
             </div>
           </SwiperSlide>

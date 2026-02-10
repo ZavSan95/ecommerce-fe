@@ -29,7 +29,7 @@ export const ProductMobileSlideshow = ({
               alt={title}
               fill
               className="object-contain"
-              priority
+              unoptimized
             />
           </SwiperSlide>
         ))}

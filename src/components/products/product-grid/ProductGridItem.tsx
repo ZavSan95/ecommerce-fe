@@ -83,6 +83,7 @@ export const ProductGridItem = ({
             fill
             sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
             className="object-cover transition-transform duration-300 group-hover:scale-105"
+            unoptimized
             onMouseEnter={() => images[1] && setImageIndex(1)}
             onMouseLeave={() => setImageIndex(0)}
           />
