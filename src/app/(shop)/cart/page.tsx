@@ -55,6 +55,7 @@ export default function CartPage() {
                   height={120}
                   alt={item.productName}
                   className="rounded-lg object-cover"
+                  unoptimized
                 />
 
                 {/* Info */}

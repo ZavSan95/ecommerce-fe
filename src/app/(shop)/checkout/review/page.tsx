@@ -124,6 +124,7 @@ export default function ReviewPage() {
                   height={80}
                   alt={item.productName}
                   className="rounded object-cover"
+                  unoptimized
                 />
 
                 <div className="flex flex-col">

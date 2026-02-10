@@ -75,6 +75,7 @@ export const CartDrawer = () => {
                   width={80}
                   height={80}
                   className="rounded object-cover"
+                  unoptimized
                 />
 
                 <div className="flex-1">
