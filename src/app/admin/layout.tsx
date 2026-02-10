@@ -15,14 +15,17 @@ export default function AdminLayout({
     state => state.auth
   );
 
-  // ⏳ Esperar a que auth esté listo
   useEffect(() => {
+    console.log('[ADMIN LAYOUT]', { isInitialized, isAuthenticated, roles: user?.roles });
+
     if (!isInitialized) return;
 
     if (!isAuthenticated || !user?.roles.includes('admin')) {
+      console.log('[ADMIN LAYOUT] redirect -> /');
       router.replace('/');
     }
   }, [isInitialized, isAuthenticated, user, router]);
+
 
   // Mientras carga → no renderizar nada
   if (!isInitialized) {

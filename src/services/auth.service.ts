@@ -62,12 +62,17 @@ export async function authMe() {
     credentials: 'include',
   });
 
-  if (!res.ok) {
-    throw new Error('Not authenticated');
+  if (res.status === 401 || res.status === 403) {
+    throw new Error('UNAUTHORIZED');
   }
 
-  return res.json(); // { user }
+  if (!res.ok) {
+    throw new Error('GENERIC_ERROR');
+  }
+
+  return res.json();
 }
+
 
 export async function logoutRequest(){
   const res = await fetch(endpoints.logout, {

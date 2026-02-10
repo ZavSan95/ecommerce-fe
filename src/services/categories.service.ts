@@ -29,8 +29,12 @@ export async function fetchCategories(
     }
   );
 
+  if (res.status === 401 || res.status === 403) {
+    throw new Error('UNAUTHORIZED');
+  }
+
   if (!res.ok) {
-    throw new Error('Error al obtener categorías');
+    throw new Error('GENERIC_ERROR');
   }
 
   return res.json();

@@ -81,8 +81,16 @@ export function ProductForm({
   useEffect(() => {
     fetchCategories({ page: 1, limit: 100 })
       .then(res => setCategories(res.data))
-      .catch(() => toast.error('Error al cargar categorías'));
+      .catch((err) => {
+        if (err.message === 'UNAUTHORIZED') {
+          toast.error('Sesión expirada');
+          return;
+        }
+
+        toast.error('Error al cargar categorías');
+      });
   }, []);
+
 
   useEffect(() => {
     if (defaultValues?.categoryId && categories.length > 0) {
