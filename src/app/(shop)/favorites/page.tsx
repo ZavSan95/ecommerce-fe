@@ -9,7 +9,7 @@ import Link from 'next/link';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
 import { getMyFavorites, toggleFavorite } from '@/services/favorites.service';
 import { FavoriteItem } from '@/interfaces/favorite-row.interface';
-import normalizeImage from '@/utils/normalizeImage';
+import { getProductImageUrl } from '@/utils/image';
 
 export default function FavoritesPage() {
   const { isAuthenticated } = useAuthGuard('/favorites', 600);
@@ -27,14 +27,13 @@ export default function FavoritesPage() {
           productId: fav.productId,
           sku: fav.sku,
           name: fav.product?.name,
-          image: normalizeImage(fav.product?.image),
+          imageKey: fav.product?.image, // 👈 SOLO KEY
           category: fav.product?.category,
         }));
 
         setItems(mapped);
       })
-      .catch(err => {
-        console.error(err);
+      .catch(() => {
         toast.error('Error cargando favoritos');
       })
       .finally(() => setLoading(false));
@@ -59,7 +58,6 @@ export default function FavoritesPage() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
         <h1 className="text-2xl font-bold">Mis favoritos</h1>
         <p className="text-sm text-gray-500">
@@ -67,90 +65,56 @@ export default function FavoritesPage() {
         </p>
       </div>
 
-      {/* Loading */}
       {loading && (
         <div className="text-center py-20 text-gray-400">
           Cargando favoritos…
         </div>
       )}
 
-      {/* Empty */}
       {!loading && items.length === 0 && (
-        <div className="flex flex-col items-center justify-center py-24 text-gray-500 gap-6">
-          <Image
-            src="/imgs/empty-favorites.webp"
-            alt="Sin favoritos"
-            width={280}
-            height={280}
-            priority
-          />
-
-          <div className="text-center space-y-1">
-            <p className="text-lg font-medium text-gray-700">
-              No hay favoritos aún
-            </p>
-            <p className="text-sm text-gray-500">
-              Todavía no agregaste productos a favoritos
-            </p>
-          </div>
+        <div className="text-center py-24 text-gray-500">
+          No hay favoritos aún
         </div>
       )}
 
-      {/* Grid */}
-      <div
-        className="
-          grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6
-        "
-      >
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
         {items.map(item => (
           <div
             key={item.id}
-            className="
-              bg-white rounded-2xl shadow-sm
-              hover:shadow-md transition overflow-hidden group
-            "
+            className="bg-white rounded-2xl shadow-sm hover:shadow-md transition overflow-hidden group"
           >
-            {/* Imagen */}
             <Link href={`/product/${item.sku}`}>
-              <div className="relative aspect-square bg-gray-100 cursor-pointer">
-                {item.image ? (
+              <div className="relative aspect-square bg-gray-100">
+                {item.imageKey ? (
                   <Image
-                    src={item.image}
+                    src={getProductImageUrl(item.imageKey)}
                     alt={item.name ?? 'Producto'}
                     fill
                     unoptimized
-                    className="
-                      object-cover group-hover:scale-105
-                      transition-transform
-                    "
+                    className="object-cover transition-transform group-hover:scale-105"
                   />
                 ) : (
-                  <div className="flex items-center justify-center h-full text-sm text-gray-400">
+                  <div className="flex items-center justify-center h-full text-gray-400">
                     Sin imagen
                   </div>
                 )}
 
-                {/* Remove */}
                 <button
                   onClick={e => {
                     e.preventDefault();
                     e.stopPropagation();
                     handleRemove(item.productId, item.sku);
                   }}
-                  className="
-                    absolute top-3 right-3 p-2 rounded-full
-                    bg-white/90 hover:bg-red-50 text-red-500 transition
-                  "
+                  className="absolute top-3 right-3 p-2 rounded-full bg-white/90 hover:bg-red-50 text-red-500"
                 >
                   <IoHeartDislikeOutline size={18} />
                 </button>
               </div>
             </Link>
 
-            {/* Info */}
             <div className="p-4 space-y-1">
-              <p className="font-medium leading-tight line-clamp-2">
-                {item.name ?? 'Producto'}
+              <p className="font-medium line-clamp-2">
+                {item.name}
               </p>
 
               {item.category && (

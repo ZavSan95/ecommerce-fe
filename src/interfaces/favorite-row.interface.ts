@@ -3,7 +3,6 @@ export interface FavoriteItem {
   productId: string;
   sku: string;
   name?: string;
-  image?: string;
+  imageKey?: string; // 👈 CLAVE
   category?: string;
 }
-
