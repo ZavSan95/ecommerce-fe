@@ -16,18 +16,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className={inter.className}>
-
         <ReduxProvider>
-          <ClientOnly>
-            <AuthBootstrap>
-              <Toaster position="top-left" />
-              {children}
-            </AuthBootstrap>
-          </ClientOnly>
+          <AuthBootstrap>
+            <Toaster position="top-left" />
+            {children}
+          </AuthBootstrap>
         </ReduxProvider>
-
       </body>
     </html>
   );
 }
+
 

@@ -11,6 +11,7 @@ import { authMe } from '@/services/auth.service';
 import { hasAuthCookie } from '@/utils/authCookies';
 
 export function AuthBootstrap({ children }: { children: React.ReactNode }) {
+  console.log('[AUTH BOOTSTRAP] mounted');
   const dispatch = useAppDispatch();
 
   useEffect(() => {
