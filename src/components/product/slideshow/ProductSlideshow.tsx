@@ -10,7 +10,7 @@ import 'swiper/css';
 import 'swiper/css/navigation';
 import 'swiper/css/thumbs';
 
-import { getProductImageUrl } from '@/utils/assets';
+import { getProductImageUrl } from '@/utils/image';
 
 interface Props {
   images: string[];
@@ -18,23 +18,29 @@ interface Props {
   className?: string;
 }
 
-export const ProductSlideshow = ({ images, title, className }: Props) => {
-  const [thumbsSwiper, setThumbsSwiper] = useState<SwiperObject | null>(null);
+export const ProductSlideshow = ({
+  images,
+  title,
+  className,
+}: Props) => {
+  const [thumbsSwiper, setThumbsSwiper] =
+    useState<SwiperObject | null>(null);
 
   return (
     <div className={`flex flex-col gap-3 ${className}`}>
-
-      {/* Imagen principal */}
       <Swiper
         modules={[Navigation, Thumbs]}
         navigation
         thumbs={{
-          swiper: thumbsSwiper && !thumbsSwiper.destroyed ? thumbsSwiper : null,
+          swiper:
+            thumbsSwiper && !thumbsSwiper.destroyed
+              ? thumbsSwiper
+              : null,
         }}
         className="h-[55vh] w-full rounded-lg"
       >
         {images.map(image => (
-          <SwiperSlide key={image} className="flex items-center justify-center">
+          <SwiperSlide key={image}>
             <Image
               src={getProductImageUrl(image)}
               alt={title}
@@ -46,7 +52,6 @@ export const ProductSlideshow = ({ images, title, className }: Props) => {
         ))}
       </Swiper>
 
-      {/* Thumbnails */}
       <Swiper
         onSwiper={setThumbsSwiper}
         modules={[Thumbs]}
@@ -56,11 +61,8 @@ export const ProductSlideshow = ({ images, title, className }: Props) => {
         className="h-[90px]"
       >
         {images.map(image => (
-          <SwiperSlide
-            key={image}
-            className="flex items-center justify-center"
-          >
-            <div className="relative w-full h-full rounded-md border border-slate-200 hover:border-slate-400 transition">
+          <SwiperSlide key={image}>
+            <div className="relative w-full h-full rounded-md border">
               <Image
                 src={getProductImageUrl(image)}
                 alt={title}

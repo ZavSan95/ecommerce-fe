@@ -35,24 +35,19 @@ export const ProductGridItem = ({
 
   const images = variant.images ?? [];
 
-  const primaryImage = images[0]
-    ? getProductImageUrl(images[0])
+  // 👇 SOLO índice, no URL
+  const [imageIndex, setImageIndex] = useState(0);
+
+  const imageKey = images[imageIndex];
+  const imageUrl = imageKey
+    ? getProductImageUrl(imageKey)
     : '/placeholder.webp';
-
-  const secondaryImage = images[1]
-    ? getProductImageUrl(images[1])
-    : null;
-
-  const [displayImage, setDisplayImage] = useState(primaryImage);
-  const [loading, setLoading] = useState(false);
 
   const handleToggleFavorite = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
-    if (!onToggleFavorite) return; 
-    
-    if (loading) return;
+    if (!onToggleFavorite) return;
 
     if (!isAuthenticated) {
       toast.error('Tenés que iniciar sesión para usar favoritos');
@@ -60,11 +55,8 @@ export const ProductGridItem = ({
       return;
     }
 
-    setLoading(true);
-
     try {
       await onToggleFavorite(product._id, variant.sku);
-
       toast.success(
         isFavorite
           ? 'Eliminado de favoritos 💔'
@@ -72,8 +64,6 @@ export const ProductGridItem = ({
       );
     } catch {
       toast.error('No se pudo actualizar favoritos');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -85,43 +75,24 @@ export const ProductGridItem = ({
   return (
     <div className="group relative rounded-xl overflow-hidden border bg-white shadow-sm hover:shadow-md transition">
 
-      {/* Imagen */}
       <Link href={`/product/${variant.sku}`}>
         <div className="relative w-full aspect-square overflow-hidden">
           <Image
-            src={displayImage}
+            src={imageUrl}
             alt={product.name}
             fill
             sizes="(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw"
             className="object-cover transition-transform duration-300 group-hover:scale-105"
-            onMouseEnter={() =>
-              secondaryImage && setDisplayImage(secondaryImage)
-            }
-            onMouseLeave={() => setDisplayImage(primaryImage)}
+            onMouseEnter={() => images[1] && setImageIndex(1)}
+            onMouseLeave={() => setImageIndex(0)}
           />
         </div>
       </Link>
 
       {/* Overlay acciones */}
-      <div
-        className="
-          absolute inset-0
-          flex items-end justify-center
-          bg-black/0
-          group-hover:bg-black/10
-          transition
-          pointer-events-none
-        "
-      >
-        <div
-          className="
-            mb-4 flex gap-3
-            opacity-0 translate-y-2
-            group-hover:opacity-100 group-hover:translate-y-0
-            transition
-            pointer-events-auto
-          "
-        >
+      <div className="absolute inset-0 flex items-end justify-center bg-black/0 group-hover:bg-black/10 transition pointer-events-none">
+        <div className="mb-4 flex gap-3 opacity-0 translate-y-2 group-hover:opacity-100 group-hover:translate-y-0 transition pointer-events-auto">
+
           <button
             onClick={handleAddToCart}
             className="p-3 rounded-full bg-white shadow hover:bg-slate-100"
@@ -130,20 +101,12 @@ export const ProductGridItem = ({
           </button>
 
           <button
-            onClick={onToggleFavorite ? handleToggleFavorite : undefined}
-            disabled={!onToggleFavorite || loading}
-            className={`
-              p-3 rounded-full shadow transition
-              ${isFavorite
+            onClick={handleToggleFavorite}
+            className={`p-3 rounded-full shadow transition ${
+              isFavorite
                 ? 'bg-red-500 text-white'
-                : 'bg-white hover:bg-slate-100'}
-              ${
-                !onToggleFavorite
-                  ? 'opacity-40 cursor-not-allowed'
-                  : ''
-              }
-              ${loading ? 'opacity-50 cursor-not-allowed' : ''}
-            `}
+                : 'bg-white hover:bg-slate-100'
+            }`}
           >
             <FiHeart size={18} />
           </button>
@@ -165,6 +128,5 @@ export const ProductGridItem = ({
         </span>
       </div>
     </div>
-
   );
 };

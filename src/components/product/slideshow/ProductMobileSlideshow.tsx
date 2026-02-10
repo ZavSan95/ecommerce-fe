@@ -3,11 +3,10 @@
 import Image from 'next/image';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination } from 'swiper/modules';
-
 import 'swiper/css';
 import 'swiper/css/pagination';
 
-import { getProductImageUrl } from '@/utils/assets';
+import { getProductImageUrl } from '@/utils/image';
 
 interface Props {
   images: string[];
@@ -15,19 +14,16 @@ interface Props {
   className?: string;
 }
 
-export const ProductMobileSlideshow = ({ images, title, className }: Props) => {
+export const ProductMobileSlideshow = ({
+  images,
+  title,
+  className,
+}: Props) => {
   return (
     <div className={className}>
-      <Swiper
-        modules={[Pagination]}
-        pagination
-        className="h-[60vh]"
-      >
+      <Swiper modules={[Pagination]} pagination className="h-[60vh]">
         {images.map(image => (
-          <SwiperSlide
-            key={image}
-            className="flex items-center justify-center"
-          >
+          <SwiperSlide key={image}>
             <Image
               src={getProductImageUrl(image)}
               alt={title}

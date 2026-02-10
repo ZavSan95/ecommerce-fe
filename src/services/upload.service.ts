@@ -39,6 +39,7 @@ export async function uploadFileToWasabi(
     headers: {
       'Content-Type': 'image/webp',
     },
+    credentials: 'include',
     body: file,
   });
 
