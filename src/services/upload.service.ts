@@ -37,9 +37,8 @@ export async function uploadFileToWasabi(
   const res = await fetch(uploadUrl, {
     method: 'PUT',
     headers: {
-      'Content-Type': 'image/webp',
+      'Content-Type': file.type,
     },
-    credentials: 'include',
     body: file,
   });
 
