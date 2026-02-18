@@ -7,6 +7,7 @@ import { Title } from '@/components';
 import { redirect } from 'next/navigation';
 import { Spinner } from '@/components/ui/spiner/Spiner';
 import { useAuthGuard } from '@/hooks/useAuthGuard';
+import { getProductImageUrl } from '@/utils/image';
 
 
 export default function CheckoutPage() {
@@ -52,13 +53,19 @@ export default function CheckoutPage() {
                 key={`${item.productId}-${item.variantSku}`}
                 className="flex mb-5"
               >
-                <Image
-                  src={item.image ?? '/placeholder.webp'}
-                  width={100}
-                  height={100}
-                  alt={item.productName}
-                  className="mr-5 rounded"
-                />
+              <Image
+                src={
+                  item.image
+                    ? getProductImageUrl(item.image)
+                    : '/placeholder.webp'
+                }
+                width={100}
+                height={100}
+                alt={item.productName}
+                className="mr-5 rounded object-cover"
+                unoptimized
+              />
+
 
                 <div>
                   <p className="font-medium">{item.productName}</p>
