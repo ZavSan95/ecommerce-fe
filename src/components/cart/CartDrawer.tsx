@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import clsx from 'clsx';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -17,6 +18,15 @@ export const CartDrawer = () => {
   const isCartOpen = useAppSelector(state => state.ui.isCartOpen);
   const items = useAppSelector(state => state.cart.items);
 
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // 🔥 EVITA hydration mismatch
+  if (!mounted) return null;
+
   const subtotal = items.reduce(
     (total, item) => total + item.price * item.quantity,
     0
@@ -24,7 +34,7 @@ export const CartDrawer = () => {
 
   return (
     <>
-      {/* Overlay / click outside */}
+      {/* Overlay */}
       {isCartOpen && (
         <div
           onClick={() => dispatch(closeCart())}
@@ -49,8 +59,14 @@ export const CartDrawer = () => {
         )}
       >
         {/* Header */}
-        <div className="relative p-5 border-b">
-
+        <div className="relative p-5 border-b flex justify-between items-center">
+          <h2 className="text-lg font-semibold">Carrito</h2>
+          <button
+            onClick={() => dispatch(closeCart())}
+            aria-label="Cerrar carrito"
+          >
+            <IoCloseOutline className="w-6 h-6 text-gray-600" />
+          </button>
         </div>
 
         {/* Items */}
@@ -132,7 +148,7 @@ export const CartDrawer = () => {
         <div className="border-t px-5 py-4">
           <div className="flex justify-between text-base font-medium mb-4">
             <span>Subtotal</span>
-            <span>${subtotal}</span>
+            <span>${subtotal.toFixed(2)}</span>
           </div>
 
           <Link
