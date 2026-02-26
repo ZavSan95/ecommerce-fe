@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAppDispatch } from '@/store/hooks';
 import {
   setUser,
@@ -10,6 +10,7 @@ import { authMe } from '@/services/auth.service';
 
 export function AuthBootstrap({ children }: { children: React.ReactNode }) {
   const dispatch = useAppDispatch();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     authMe()
@@ -18,9 +19,13 @@ export function AuthBootstrap({ children }: { children: React.ReactNode }) {
       })
       .catch(() => {
         dispatch(clearAuth());
+      })
+      .finally(() => {
+        setLoading(false);
       });
   }, [dispatch]);
 
+  if (loading) return null; // o spinner
+
   return <>{children}</>;
 }
-
